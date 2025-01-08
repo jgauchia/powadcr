@@ -1220,9 +1220,9 @@ class HMI
           writeString("statusFILE.txt=\"ITEMS  " + String(FILE_TOTAL_FILES) +"\"");         
           
           // Obtenemos la pagina mostrada del listado de ficheros
-          int totalPages = ((FILE_TOTAL_FILES-1) / TOTAL_FILES_IN_BROWSER_PAGE);
+          int totalPages = ((FILE_TOTAL_FILES) / TOTAL_FILES_IN_BROWSER_PAGE);
           
-          if ((FILE_TOTAL_FILES-1) % TOTAL_FILES_IN_BROWSER_PAGE != 0)
+          if ((FILE_TOTAL_FILES) % TOTAL_FILES_IN_BROWSER_PAGE != 0)
           { 
               totalPages+=1;
           }
@@ -1531,8 +1531,8 @@ class HMI
             if (FILE_BROWSER_OPEN)
             {
                 // Calculamos el total de páginas
-                int totalPages = ((FILE_TOTAL_FILES-1) / TOTAL_FILES_IN_BROWSER_PAGE);
-                if ((FILE_TOTAL_FILES-1) % TOTAL_FILES_IN_BROWSER_PAGE != 0)
+                int totalPages = (FILE_TOTAL_FILES / TOTAL_FILES_IN_BROWSER_PAGE);
+                if (FILE_TOTAL_FILES % TOTAL_FILES_IN_BROWSER_PAGE != 0)
                 {
                     totalPages+=1;
                 }            
@@ -1681,7 +1681,7 @@ class HMI
         else if (strCmd.indexOf("FEND") != -1) 
         {
             // Posicionamos entonces en la ultima página
-            int totalPages = ((FILE_TOTAL_FILES-1) / TOTAL_FILES_IN_BROWSER_PAGE);
+            int totalPages = ((FILE_TOTAL_FILES) / TOTAL_FILES_IN_BROWSER_PAGE);
             // Cogemos el primer item y refrescamos
             FILE_PTR_POS = (totalPages * TOTAL_FILES_IN_BROWSER_PAGE) + 1;
             // Actualizamos la lista con la posición nueva del puntero
@@ -1718,7 +1718,7 @@ class HMI
               logln("files in page: " + String(FILE_TOTAL_FILES-1));
             #endif
 
-            if (FILE_PTR_POS > (FILE_TOTAL_FILES-1))
+            if (FILE_PTR_POS > (FILE_TOTAL_FILES))
             {
                 // Hacemos esto para permanecer en la misma pagina
                 FILE_PTR_POS -= TOTAL_FILES_IN_BROWSER_PAGE;

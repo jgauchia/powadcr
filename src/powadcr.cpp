@@ -1858,7 +1858,8 @@ void updateIndicators(int size, int pos, int fsize, int bitrate, String fname)
 void estimatePlayingTime(int fileread, int filesize, int samprate)
 {
 
-    if (samprate > 0 ) { 
+    if (samprate > 0 ) 
+    { 
       float totalTime = (filesize * 8) / (samprate);
       int tmin = totalTime / 60.0;
       int tsec = totalTime - (tmin * 60);
@@ -1878,8 +1879,6 @@ void estimatePlayingTime(int fileread, int filesize, int samprate)
       String umin = (min < 10) ? "0" : "";                    
 
       LAST_MESSAGE = "Total time:  [" + utmin + String(tmin) + ":" + utsec + String(tsec) + "]   -   Elapsed:  [" + umin + String(min) + ":" + usec + String(sec) + "]"; 
-
-
     }
 }
 
@@ -3617,8 +3616,8 @@ void openBlocksBrowser()
     hmi.writeString("blocks.totalBl.txt=\"" + String(TOTAL_BLOCKS-1) + "\"");
     hmi.writeString("blocks.bbpag.txt=\"" + String(BB_PAGE_SELECTED) + "\"");
 
-    totalPages = ((TOTAL_BLOCKS-1) / MAX_BLOCKS_IN_BROWSER);
-    if ((FILE_TOTAL_FILES-1) % MAX_BLOCKS_IN_BROWSER != 0)
+    totalPages = ((TOTAL_BLOCKS) / MAX_BLOCKS_IN_BROWSER);
+    if ((FILE_TOTAL_FILES) % MAX_BLOCKS_IN_BROWSER != 0)
     {
         totalPages+=1;
     }
