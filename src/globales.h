@@ -263,6 +263,10 @@ edge LAST_EAR_IS = POLARIZATION;
 //edge SCOPE = down;
 bool APPLY_END = false;
 int SAMPLING_RATE = 44100;
+int WAV_SAMPLING_RATE = 44100;
+int WAV_BITS_PER_SAMPLE = 16;
+int WAV_CHAN = 2;
+bool WAV_UPDATE = false;
 
 bool INVERSETRAIN = false;
 bool ZEROLEVEL = false;
@@ -501,7 +505,7 @@ const int READY_ST = 3;
 const int END_ST = 4;
 const int ACK_LCD = 5;
 const int RESET = 6;
-const int SAMPLINGTEST = 8;
+bool SAMPLINGTEST = false;
 //
 double MAIN_VOL_FACTOR = 100;
 

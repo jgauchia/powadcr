@@ -44,6 +44,9 @@ class HMI
       
       private:
 
+      
+
+
       struct tFileLST
       {
           int ID=0;
@@ -1469,11 +1472,19 @@ class HMI
       void copyFile(File32 &fSource, File32 &fTarget)
       {
           size_t n;  
-          uint8_t buf[64];
+          uint8_t buf[1024];
+          int prgCopy = 0;
+          int bytesRead = 0; 
 
           while ((n = fSource.read(buf, sizeof(buf))) > 0) 
           {
+            // Escribimos
             fTarget.write(buf, n);
+            // Actualizamos indicacion
+            bytesRead +=n;
+            prgCopy = (bytesRead * 100) / fSource.size();
+            // Mostramos
+            writeString("statusFILE.txt=\"COPY " + String(prgCopy) + "%\"");
           }        
       }
 
@@ -2359,6 +2370,7 @@ class HMI
               {
                   LAST_MESSAGE = "Ejecting cassette.";
                   writeString("g0.txt=\"" + LAST_MESSAGE + "\"");
+                  // writeXSTR(66,247,342,16,2,65535,0,1,1,50,LAST_MESSAGE);
                   delay(125);
                   clearInformationFile();
                   delay(125);
@@ -2737,7 +2749,7 @@ class HMI
             log("Config. saved");
           #endif
         }
-        // Sampling rate
+        // Sampling rate TZX
         else if (strCmd.indexOf("SAM=") != -1) 
         {
           //Cogemos el valor
@@ -2765,11 +2777,99 @@ class HMI
               SAMPLING_RATE = 22050;
               writeString("tape.lblFreq.txt=\"22KHz\"" );
           }
-          
+         
           #ifdef DEBUGMODE
             log("Sampling rate =" + String(SAMPLING_RATE));
           #endif
         }
+        else if (strCmd.indexOf("WSR=") != -1) 
+        {
+          //Cogemos el valor
+          uint8_t buff[8];
+          strCmd.getBytes(buff, 7);
+          int valEn = (int)buff[4];
+          //
+          if (valEn==0)
+          {
+              WAV_SAMPLING_RATE = 48000;
+              // writeString("tape.lblFreq.txt=\"48KHz\"" );
+          }
+          else if(valEn==1)
+          {
+              WAV_SAMPLING_RATE = 44100;
+              // writeString("tape.lblFreq.txt=\"44KHz\"" );
+          }
+          else if(valEn==2)
+          {
+              WAV_SAMPLING_RATE = 32000;
+              // writeString("tape.lblFreq.txt=\"32KHz\"" );
+          }
+          else if(valEn==3)
+          {
+              WAV_SAMPLING_RATE = 22050;
+              // writeString("tape.lblFreq.txt=\"22KHz\"" );
+          }
+          else if(valEn==4)
+          {
+              WAV_SAMPLING_RATE = 11025;
+              // writeString("tape.lblFreq.txt=\"22KHz\"" );
+          }           
+          
+          WAV_UPDATE = true;
+          
+          #ifdef DEBUGMODE
+            log("WAV Sampling rate =" + String(WAV_SAMPLING_RATE));
+          #endif
+        }  
+        else if (strCmd.indexOf("WMO=") != -1) 
+        {
+          //Cogemos el valor
+          uint8_t buff[8];
+          strCmd.getBytes(buff, 7);
+          int valEn = (int)buff[4];
+          //
+          if (valEn==1)
+          {
+              // Habilitar MONO
+              WAV_CHAN = 1;
+          }
+          else
+          {
+              // Habilitar STEREO
+              WAV_CHAN = 2;
+          }
+          
+          WAV_UPDATE = true;
+
+          #ifdef DEBUGMODE
+            logln("WAV chanels =" + String(WAV_CHAN));
+          #endif
+
+        }     
+        else if (strCmd.indexOf("W8B=") != -1) 
+        {
+          //Cogemos el valor
+          uint8_t buff[8];
+          strCmd.getBytes(buff, 7);
+          int valEn = (int)buff[4];
+          //
+          if (valEn==1)
+          {
+              // Habilita terminadores
+              WAV_BITS_PER_SAMPLE = 8;
+          }
+          else
+          {
+              // Deshabilita terminadores
+              WAV_BITS_PER_SAMPLE = 16;
+          }
+
+          WAV_UPDATE = true;
+
+          #ifdef DEBUGMODE
+            logln("WAV bits =" + String(WAV_BITS_PER_SAMPLE));
+          #endif
+        }                 
         // Habilitar recording sobre WAV file
         else if (strCmd.indexOf("WAV=") != -1) 
         {
@@ -2980,6 +3080,10 @@ class HMI
           // logln("VOL DOWN");
           // logln("");
         }
+        else if (strCmd.indexOf("TONE") != -1) 
+        {
+            SAMPLINGTEST = true;
+        }
         // Busqueda de ficheros
         else if (strCmd.indexOf("TXTF=") != -1) 
         {
@@ -3169,6 +3273,57 @@ class HMI
           writeString("currentBlock.val=" + String(BLOCK_SELECTED + 1));                              
       }
 
+      void writeXSTR(int x, int y, int w, int h, int font, int ink, int bckColor, int xcenter, int ycenter, int maxChar, String txt)
+      {       
+          // usage: xstr <x>,<y>,<w>,<h>,<font>,<pco>,<bco>,<xcen>,<ycen>,<sta>,<text>
+          // 
+          // <x> is the x coordinate of upper left corner of defined text area
+          // <y> is the y coordinate of upper left corner of defined text area
+          // <w> is the width of the defined text area
+          // <h> is the height of the defined text area
+          // <font> is the number of the Resource Font
+          // <pco> is the foreground color of text (Color Constant or 565 color value)
+          // <bco> is a) background color of text, or b) picid if <sta> is set to 0 or 2
+          // <xcen> is the Horizontal Alignment (0 – left, 1 – centered, 2 – right)
+          // <ycen> is the Vertical Alignment (0 – top/upper, 1 – center, 3 – bottom/lower)
+          // <sta> is background Fill (0 – crop image, 1 – solid color, 2 – image, 3 – none)
+          // <text> is the string content (constant or .txt attribute), ie “China”, or va0.txt
+          // 
+          // Example:
+          // xstr 10,10,100,30,1,WHITE,GREEN,1,1,1,va0.txt
+          
+          
+          String strToSend = "";
+          char strClear[maxChar] = {" "};
+
+          strToSend = "xstr " + String(x) + "," 
+                                    + String(y) + "," 
+                                    + String(w) + "," 
+                                    + String(h) + "," 
+                                    + String(font) + "," 
+                                    + String(ink) + "," 
+                                    + String(bckColor) + "," 
+                                    + String(xcenter) + "," 
+                                    + String(ycenter) + ","
+                                    +  String(2) + ","
+                                    + "\"" + strClear + "\"";
+          writeString(strToSend);
+          writeString("doevents");
+          strToSend = "xstr " + String(x) + "," 
+                                    + String(y) + "," 
+                                    + String(w) + "," 
+                                    + String(h) + "," 
+                                    + String(font) + "," 
+                                    + String(ink) + "," 
+                                    + String(bckColor) + "," 
+                                    + String(xcenter) + "," 
+                                    + String(ycenter) + ","
+                                    +  String(3) + ","
+                                    + "\"" + txt  + "\"";
+          writeString(strToSend);
+
+      }
+
       void updateInformationMainPage(bool FORZE_REFRESH = false) 
       {            
           // Para el caso de los players, no se usa esto.
@@ -3311,7 +3466,10 @@ class HMI
 
           // Actualizamos el LAST_MESSAGE
           if (lastMsn != LAST_MESSAGE || FORZE_REFRESH)
-          {writeString("g0.txt=\"" + LAST_MESSAGE + "\"");}
+          {
+            writeString("g0.txt=\"" + LAST_MESSAGE + "\"");
+            // writeXSTR(66,247,342,16,2,65535,0,1,1,50,LAST_MESSAGE);
+          }
           lastMsn = LAST_MESSAGE;
           
           // Actualizamos la barra de progreso

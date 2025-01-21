@@ -37,7 +37,7 @@
 
 // Para Rolling releases - rDDMMYY.HHMM
 // Para versión estable - vX.Y
-#define VERSION "v1.0r1"
+#define VERSION "v1.0r2"
 #define MACHINE_ZX
 
 // Define sampling rate a 44.1KHz. En otro caso será a 32KHz
@@ -141,7 +141,7 @@ IPAddress primaryDNS(0, 0, 0, 0); // Not Mandatory
 IPAddress secondaryDNS(0, 0, 0, 0);     // Not Mandatory
 
 // HMI
-#define windowNameLength 44
+#define windowNameLength 32
 #define tRotateNameRfsh 230
 
 // Limitador de volumen

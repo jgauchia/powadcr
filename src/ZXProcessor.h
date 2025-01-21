@@ -1065,28 +1065,29 @@ class ZXProcessor
             return result;            
         }
 
-        void samplingtest()
+        void samplingtest(float samplingrate)
         {
             // Se genera un pulso cuadrado de T = 1.00015s
+            AudioInfo info(44100, 2, 16);
+            AudioKitStream kit;
+            int ss = 44100;
+            uint8_t buffer[ss*2*channels];
+            int16_t *samples = (int16_t*) buffer;
 
-            while(true)
-            {
-                int samples = 441;
-                uint8_t buffer[samples*2*channels];
+            // Custom fill array 8 bits buffer
+            size_t ssignal = createTestSignal(buffer,ss,30000);
+            
+            // Output
+            kit.config().copyFrom(info);
+            kit.config().output_device = AUDIO_HAL_DAC_OUTPUT_ALL;
+            kit.begin();
 
-                for (int i=0;i<49;i++)
-                {
-                    // Escribimos el tren de pulsos en el procesador de Audio
-                    m_kit.write(buffer, createTestSignal(buffer, samples, 30000));            
-                }
+            ResampleStream out(kit);
+            out.setTargetSampleRate(samplingrate);
+            out.begin();
 
-                for (int j=0;j<49;j++)
-                {
-                    // Escribimos el tren de pulsos en el procesador de Audio
-                    m_kit.write(buffer, createTestSignal(buffer, samples, -30000));            
-                }
-            }         
-
+            out.write((uint8_t*)&buffer, sizeof(int16_t));
+            out.write((uint8_t*)&buffer, sizeof(int16_t));          
         }
 
         // Constructor

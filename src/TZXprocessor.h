@@ -2774,7 +2774,7 @@ class TZXprocessor
               // PROGRAM_NAME = "Audio block (WAV)";
               LAST_SIZE = _myTZX.descriptor[i].size;          
               // 
-              if (_myTZX.descriptor[i].samplingRate == 79 || _myTZX.descriptor[i].samplingRate == 80)
+              if (_myTZX.descriptor[i].samplingRate >= 77 && _myTZX.descriptor[i].samplingRate <= 80)
               {
                   SAMPLING_RATE = 44100;
                   BIT_DR_0 = DBIT_DR44_0;
