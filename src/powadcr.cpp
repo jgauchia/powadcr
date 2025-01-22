@@ -2050,17 +2050,22 @@ void playWAV()
     AudioSourceSDFAT source(FILE_LAST_DIR.c_str(),"wav",sdcfg);
     AudioKitStream kit;
     WAVDecoder decoder;
+
+    FormatConverterStream conv(kit);              
+
+    AudioInfo from(decoder.audioInfo().sample_rate, decoder.audioInfo().channels, decoder.audioInfo().bits_per_sample);                                           
+    AudioInfo to(decoder.audioInfo().sample_rate, decoder.audioInfo().channels, decoder.audioInfo().bits_per_sample); 
+
+    conv.setBuffered(true);
+    conv.begin(from,to);  
+
     AudioPlayer player(source,kit,decoder);
-    
+
     auto cfg = kit.defaultConfig(TX_MODE);
 
-    // cfg.bits_per_sample = decoder.audioInfoEx().bits_per_sample;
-    // cfg.channels = decoder.audioInfoEx().channels;
-    // cfg.sample_rate = decoder.audioInfoEx().sample_rate;
-
-    cfg.bits_per_sample = WAV_BITS_PER_SAMPLE;
-    cfg.channels = WAV_CHAN;
-    cfg.sample_rate = WAV_SAMPLING_RATE;
+    cfg.bits_per_sample = 16;
+    cfg.channels = 2;
+    cfg.sample_rate = 44100;
 
     kit.begin(cfg);
     kit.setSpeakerActive(ACTIVE_AMP);
@@ -2071,8 +2076,8 @@ void playWAV()
 
     // playerbt.setVolume(MAIN_VOL/100);
     player.setAutoNext(false); 
+    player.setBufferSize(256 * 1024);
 
-    player.setBufferSize(4096);
 
     logln("Current position: " + String(FILE_PTR_POS + FILE_IDX_SELECTED));
     
@@ -2122,12 +2127,32 @@ void playWAV()
           // }
           if (WAV_UPDATE)
           {
-              cfg.bits_per_sample = WAV_BITS_PER_SAMPLE;
-              cfg.channels = WAV_CHAN;
-              cfg.sample_rate = WAV_SAMPLING_RATE;
 
-              kit.begin(cfg);
-              kit.setSpeakerActive(ACTIVE_AMP); 
+              from.bits_per_sample = decoder.audioInfo().bits_per_sample;
+              from.channels = decoder.audioInfo().channels;
+              from.sample_rate = decoder.audioInfo().sample_rate;
+
+              to.bits_per_sample = WAV_BITS_PER_SAMPLE;
+              to.channels = WAV_CHAN;
+              to.sample_rate = WAV_SAMPLING_RATE;
+
+              conv.begin(from,to);
+
+              // AudioPlayer plStr(source,conv,decoder);
+              // AudioPlayer &ptr = player;
+              // plStr.begin();
+
+              // ptr.audioInfo().copyFrom(plStr.audioInfo());
+              
+              // cfg.bits_per_sample = WAV_BITS_PER_SAMPLE;
+              // cfg.channels = WAV_CHAN;
+              // cfg.sample_rate = WAV_SAMPLING_RATE;
+
+              // kit.begin(cfg);
+              // kit.setSpeakerActive(ACTIVE_AMP); 
+              // player.stop();
+              // player.audioInfo().copyFrom(to);
+              
               WAV_UPDATE = false;           
           }
   

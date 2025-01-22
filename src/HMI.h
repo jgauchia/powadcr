@@ -2782,6 +2782,25 @@ class HMI
             log("Sampling rate =" + String(SAMPLING_RATE));
           #endif
         }
+        else if (strCmd.indexOf("CFR=") != -1) 
+        {
+          //Cogemos el valor
+          uint8_t buff[8];
+          strCmd.getBytes(buff, 7);
+          int valEn = (int)buff[4];
+          //
+          if (valEn==1)
+          {
+              WAV_SAMPLING_RATE = myNex.readNumber("menuAudio4.va0.val");
+              logln("Custom sampling rate: " + String(WAV_SAMPLING_RATE));
+          }
+
+          WAV_UPDATE = true;                         
+          
+          #ifdef DEBUGMODE
+            log("Customo WAV Sampling rate =" + String(WAV_SAMPLING_RATE));
+          #endif
+        }         
         else if (strCmd.indexOf("WSR=") != -1) 
         {
           //Cogemos el valor
