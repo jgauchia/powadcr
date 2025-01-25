@@ -1537,7 +1537,7 @@ void playMP3()
     cfg.channels = 2;
     cfg.sample_rate = 44100;
     cfg.buffer_count = 2;
-    cfg.buffer_size = 256;
+    cfg.buffer_size = 256 * 1024;
 
     // Configuramos el ecualizador
     cfg_eq = eq.defaultConfig();
@@ -2024,11 +2024,13 @@ void playMP3()
       logln("Error recovering spi initialization");
     }  
 
-    source.end();
-
     rotate_enable = false;
 }
 
+void playWAV2()
+{
+
+}
 
 void playWAV()
 {
@@ -2514,10 +2516,6 @@ void playWAV()
     if (!sdf.begin(sdcfg)) 
     {
       logln("Error recovering spi initialization");
-    }
-    else
-    {
-      logln("SD recovered OK");
     }
 
     // Esto lo hacemos para evitar problemas en el rotate

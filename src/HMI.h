@@ -415,6 +415,7 @@ class HMI
               {
                   // Es un registro normal
                   fillWithFiles(f,fstatus,search_pattern);
+                  // Ordenamos el fichero
               }
           }
           else
