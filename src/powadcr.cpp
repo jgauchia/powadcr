@@ -1498,7 +1498,7 @@ void playMP3()
     int offset = 0;
 
     // Buffer de MP3 a 256KB
-    size_t bufferSize = 256;
+    size_t bufferSize = 256 * 1024;
 
     int pressedCountFFWD = 0;
     int pressedCountRWD = 0;
@@ -1537,7 +1537,7 @@ void playMP3()
     cfg.channels = 2;
     cfg.sample_rate = 44100;
     cfg.buffer_count = 2;
-    cfg.buffer_size = 256 * 1024;
+    cfg.buffer_size = bufferSize;
 
     // Configuramos el ecualizador
     cfg_eq = eq.defaultConfig();
@@ -2003,11 +2003,7 @@ void playMP3()
         }
         
         tapeAnimationOFF(); 
-
-        player.stop();
-        kit.flush();
         player.end();
-        delay(2000);
 
         moveDirection = 1;
         posRotateName = 0;        
