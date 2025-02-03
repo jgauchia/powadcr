@@ -2943,6 +2943,20 @@ class HMI
             logln("Modo Out to WAV =" + String(OUT_TO_WAV));
           #endif
         }
+        // Deshabilitar Auto Stop en WAV and MP3 player.
+        else if (strCmd.indexOf("DPS=") != -1) 
+        {
+          //Cogemos el valor
+          uint8_t buff[8];
+          strCmd.getBytes(buff, 7);
+          int valEn = (int)buff[4];
+          //
+          disable_auto_wav_stop != disable_auto_wav_stop;
+
+          #ifdef DEBUGMODE
+            logln("Modo Auto STOP player =" + String(OUT_TO_WAV));
+          #endif
+        }        
         // Habilitar Audio output cuando está grabando.
         else if (strCmd.indexOf("LOO=") != -1) 
         {

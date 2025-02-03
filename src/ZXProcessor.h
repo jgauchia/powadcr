@@ -325,7 +325,9 @@ class ZXProcessor
                 if (OUT_TO_WAV)
                 {                
                     encoderOutWAV.write(buffer, result);
-                }                           
+                }
+
+                           
         }
 
         void sampleDR(int width, int amp)

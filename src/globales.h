@@ -241,6 +241,7 @@ enum edge
 // WAV record
 bool MODEWAV = false;
 bool OUT_TO_WAV = false;
+bool disable_auto_wav_stop = false;
 
 uint8_t TAPESTATE = 0;
 

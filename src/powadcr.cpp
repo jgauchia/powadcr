@@ -220,7 +220,6 @@ using namespace audio_tools;
 // -----------------------------------------------------------------------
 int posRotateName = 0;  // Posicion del texto rotativo en tape.name.txt (HMI)
 int moveDirection = 1;
-bool disable_auto_wav_stop = false;
 bool rotate_enable = false;
 
 int plLastSize = 0;
@@ -1381,9 +1380,10 @@ void prepareOutputToWav()
       logln("Out to WAV file. Ready!");
     }
 
-    // Paramos el ESp32kit antes de configurar otra vez
-    AudioInfo lineInCfg(44100, 2, 16);
-    encoderOutWAV.begin(lineInCfg);
+    // Configuramos el encoder para salida a 44.1KHz, 16-bits, STEREO
+    AudioInfo wavencodercfg(44100, 2, 16);
+    // Inicializamos el encoder
+    encoderOutWAV.begin(wavencodercfg);
 
 }
 
@@ -3660,6 +3660,7 @@ void tapeControl()
         {
           wavfile.flush();
           wavfile.close();
+          encoderOutWAV.end();
         }
       }     
       else if (PAUSE)       
@@ -3695,6 +3696,7 @@ void tapeControl()
         {
           wavfile.flush();
           wavfile.close();
+          encoderOutWAV.end();
         }        
 
       }
@@ -3745,6 +3747,7 @@ void tapeControl()
         {
           wavfile.flush();
           wavfile.close();
+          encoderOutWAV.end();
         }
 
       }
@@ -3780,6 +3783,7 @@ void tapeControl()
         {
           wavfile.flush();
           wavfile.close();
+          encoderOutWAV.end();
         }
 
       }
