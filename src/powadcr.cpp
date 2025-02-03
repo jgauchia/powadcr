@@ -120,6 +120,14 @@ EasyNex myNex(SerialHW);
 #include "AudioTools/AudioLibs/AudioKit.h"
 AudioKit ESP32kit;
 
+// const char* file_name = "/output.wav";
+// audio_tools::AudioInfo info(44100, 2, 8);
+// I2SStream inWAV;
+// File32 fileOutToWav;
+// // File file;  // final output stream
+// EncodedAudioStream outWAV(&fileOutToWav, new WAVEncoder());
+// StreamCopy copierOutToWav(outWAV, inWAV);  // copies data
+
 // #include "AudioTools/AudioLibs/I2SCodecStream.h"
 // I2SCodecStream i2sOut(AudioKitEs8388V2);
 
@@ -134,6 +142,8 @@ SDmanager sdm;
 HMI hmi;
 
 // #include "interface.h"
+File32 wavfile;
+EncodedAudioStream encoderOutWAV(&wavfile, new WAVEncoder());
 #include "ZXProcessor.h"
 
 // ZX Spectrum. Procesador de audio output
@@ -152,7 +162,7 @@ SdFat sd;
 SdFat32 sdf;
 SdFile sdFile;
 File32 sdFile32;
-File32 wavfile;
+
 
 // Creamos los distintos objetos
 TZXprocessor pTZX(ESP32kit);
@@ -201,6 +211,9 @@ bool pageScreenIsShown = false;
 // #include "AudioTools/AudioCodecs/CodecFLAC.h"
 
 using namespace audio_tools;  
+
+
+
 
 // Variables
 //
@@ -433,6 +446,8 @@ bool loadWifiCfgFile()
 void proccesingTAP(char* file_ch)
 {    
     //pTAP.set_SdFat32(sdf);
+    
+
     pTAP.initialize();
 
     if (!PLAY)
@@ -1341,6 +1356,36 @@ void uploadFirmDisplay(char *filetft)
     file.close();
 }
 // -------------------------------------------------------------------------------------------------------------------
+
+void prepareOutputToWav()
+{
+    String wavnamepath = "/WAV/" + FILE_LOAD.substring(0,FILE_LOAD.length()-4) + ".wav";
+    char file_name[255];
+    strcpy(file_name,wavnamepath.c_str());
+
+    logln("Output to WAV: " + wavnamepath);
+
+    // AudioLogger::instance().begin(Serial, AudioLogger::Error);
+
+    // open file for recording WAV
+    wavfile = sdf.open(file_name, O_WRITE | O_CREAT);
+
+    if (!wavfile)
+    {
+      logln("Error open file to output playing");
+      OUT_TO_WAV = false;
+      return;
+    }
+    else
+    {
+      logln("Out to WAV file. Ready!");
+    }
+
+    // Paramos el ESp32kit antes de configurar otra vez
+    AudioInfo lineInCfg(44100, 2, 16);
+    encoderOutWAV.begin(lineInCfg);
+
+}
 
 void setSTOP()
 {
@@ -2843,6 +2888,7 @@ void loadingFile(char* file_ch)
   }
 
 }
+
 void stopFile()
 {
   //Paramos la animación
@@ -2858,6 +2904,7 @@ void pauseFile()
   PAUSE = true;
   REC = false;
 }
+
 void ejectingFile()
 {
   logln("Eject executing for " + TYPE_FILE_LOAD);
@@ -2896,8 +2943,6 @@ void ejectingFile()
 
   LAST_MESSAGE = "No file inside the tape";    
 }
-
-
 
 void prepareRecording()
 {
@@ -2970,6 +3015,7 @@ void recordingFile()
       STOP = true;
     }
 }
+
 void getAudioSettingFromHMI()
 {
     if(myNex.readNumber("menuAdio.enTerm.val")==1)
@@ -3455,9 +3501,9 @@ void openBlocksBrowser()
           }
           else
           {
-                int tapSize = myTAP.descriptor[i + BB_PTR_ITEM].size;
-                hmi.writeString("blocks.data" + String(i) + ".txt=\"" + myTAP.descriptor[i + BB_PTR_ITEM].typeName + "\"");
-                hmi.writeString("blocks.name" + String(i) + ".txt=\"" + myTAP.descriptor[i + BB_PTR_ITEM].name + "\"");
+                int tapSize = myTAP.descriptor[i + BB_PTR_ITEM - 1].size;
+                hmi.writeString("blocks.data" + String(i) + ".txt=\"" + myTAP.descriptor[i + BB_PTR_ITEM - 1].typeName + "\"");
+                hmi.writeString("blocks.name" + String(i) + ".txt=\"" + myTAP.descriptor[i + BB_PTR_ITEM - 1].name + "\"");
                 hmi.writeString("blocks.size" + String(i) + ".txt=\"" + String(tapSize) + "\"");
           }        
       }
@@ -3580,7 +3626,10 @@ void tapeControl()
       // Esto nos permite abrir el Block Browser en reproduccion
       if (BB_OPEN || BB_UPDATE)
       {
+          // Ojo! no meter delay! que esta en una reproduccion
           openBlocksBrowser();
+          openBlocksBrowser();
+
           BB_UPDATE = false;
           BB_OPEN = false;    
       }      
@@ -3606,6 +3655,12 @@ void tapeControl()
       {
         TAPESTATE = 0;
         LOADING_STATE = 0;
+
+        if (OUT_TO_WAV)
+        {
+          wavfile.flush();
+          wavfile.close();
+        }
       }     
       else if (PAUSE)       
       {
@@ -3635,6 +3690,13 @@ void tapeControl()
               }
           }
         }
+        
+        if (OUT_TO_WAV)
+        {
+          wavfile.flush();
+          wavfile.close();
+        }        
+
       }
       else if (STOP)
       {
@@ -3679,6 +3741,12 @@ void tapeControl()
           getTheFirstPlayeableBlock();
         }
 
+        if (OUT_TO_WAV)
+        {
+          wavfile.flush();
+          wavfile.close();
+        }
+
       }
       else if (REC)
       {
@@ -3707,6 +3775,13 @@ void tapeControl()
               TAPESTATE = 220;
           }          
         }
+
+        if (OUT_TO_WAV)
+        {
+          wavfile.flush();
+          wavfile.close();
+        }
+
       }
       else
       {
@@ -3849,6 +3924,12 @@ void tapeControl()
         {
           if (FILE_PREPARED)
           {
+
+            if (OUT_TO_WAV)
+            {
+                prepareOutputToWav();                   
+            }
+
             TAPESTATE = 1;
             LOADING_STATE = 1;
           }

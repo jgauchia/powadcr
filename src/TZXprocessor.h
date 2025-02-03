@@ -3123,8 +3123,6 @@ class TZXprocessor
                               PROGRESS_BAR_BLOCK_VALUE = (BYTES_INI * 100 ) / (_myTZX.descriptor[i].offset + BYTES_IN_THIS_BLOCK) ;
 
                               bufferD = 1024;  // Buffer de BYTES de datos convertidos a samples
-                              // Reservamos memoria dinamica
-
 
                               partitions = ldatos / bufferD;
                               lastPartitionSize = ldatos - (partitions * bufferD);

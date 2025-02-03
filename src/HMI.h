@@ -1904,7 +1904,14 @@ class HMI
 
           if (blsel >= 0 && blsel <= TOTAL_BLOCKS)
           {
-            BLOCK_SELECTED = blsel;
+            if (TYPE_FILE_LOAD != "TAP")
+            {
+              BLOCK_SELECTED = blsel;
+            }
+            else
+            {
+              BLOCK_SELECTED = blsel - 1;
+            }
             writeString("tape.currentBlock.val=" + String(BLOCK_SELECTED));
           }         
           BB_OPEN = false;
@@ -2900,17 +2907,40 @@ class HMI
           //
           if (valEn==1)
           {
-              // Habilita terminadores
+              // Habilita
               MODEWAV = true;
           }
           else
           {
-              // Deshabilita terminadores
+              // Deshabilita
               MODEWAV = false;
           }
 
           #ifdef DEBUGMODE
             logln("Modo WAV =" + String(MODEWAV));
+          #endif
+        }
+        // Habilitar play to WAV file file
+        else if (strCmd.indexOf("PTW=") != -1) 
+        {
+          //Cogemos el valor
+          uint8_t buff[8];
+          strCmd.getBytes(buff, 7);
+          int valEn = (int)buff[4];
+          //
+          if (valEn==1)
+          {
+              // Habilita
+              OUT_TO_WAV = true;
+          }
+          else
+          {
+              // Deshabilita
+              OUT_TO_WAV = false;
+          }
+
+          #ifdef DEBUGMODE
+            logln("Modo Out to WAV =" + String(OUT_TO_WAV));
           #endif
         }
         // Habilitar Audio output cuando está grabando.

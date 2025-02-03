@@ -43,7 +43,6 @@ class ZXProcessor
 {
    
     private:
-
     // FIR Filter variables.
     int _x[3] = {0,0,0};
 
@@ -130,6 +129,11 @@ class ZXProcessor
             }
         }
 
+        // void outToWav(size_t buffersize)
+        // {
+        //     copierOutToWav.copyBytes(buffersize);
+        // }
+
         void insertSamplesError(int samples, bool changeNextEARedge)
         {
             // Este procedimiento permite insertar en la señal
@@ -168,6 +172,11 @@ class ZXProcessor
             if (!forzeExit)
             {
                 m_kit.write(buffer, result);
+
+                if (OUT_TO_WAV)
+                {                
+                    encoderOutWAV.write(buffer, result);
+                }
             }
 
             // Reiniciamos
@@ -237,23 +246,7 @@ class ZXProcessor
                     }
                 }
             }
-            // Asignamos el nivel de amplitud que le corresponde a cada canal.
-            // Vemos si hay inversion de onda  
-
-
-
-            // if(INVERSETRAIN)
-            // {
-            //     if(A==maxAmplitude)
-            //     {
-            //         A=minAmplitude;
-            //     }
-            //     else
-            //     {
-            //         A=maxAmplitude;
-            //     }
-            // }           
-
+ 
             return(A);
         }
 
@@ -312,15 +305,6 @@ class ZXProcessor
 
                 for (int j=0;j<width;j++)
                 {
-                    // if (sample_R > 0)
-                    // {
-                    //     SCOPE=up;
-                    // }
-                    // else
-                    // {
-                    //     SCOPE=down;
-                    // }
-
                     if (stopOrPauseRequest())
                     {
                         // Salimos
@@ -337,7 +321,11 @@ class ZXProcessor
                 }            
 
                 // Volcamos en el buffer
-                m_kit.write(buffer, result);             
+                m_kit.write(buffer, result); 
+                if (OUT_TO_WAV)
+                {                
+                    encoderOutWAV.write(buffer, result);
+                }                           
         }
 
         void sampleDR(int width, int amp)
@@ -787,10 +775,6 @@ class ZXProcessor
             {
                 // Generamos los semipulsos        
                 semiPulse(data[i],true);
-                // if (!TSX_PARTITIONED)
-                // {
-                //     PROGRESS_BAR_TOTAL_VALUE = ((BYTES_INI + i) * 100 ) / BYTES_TOBE_LOAD;
-                // }
             }
         }   
 
@@ -838,41 +822,6 @@ class ZXProcessor
             //log("Fin del PLAY");
         }
 
-        void createAudioByte()
-        {
-                // size_t result = 0;                
-                // uint8_t buffer[bytes+4];                
-                // int16_t *ptr = (int16_t*)buffer;
-                // int chn = channels;        
-
-                // // Initialize FIR filter                
-                // for (int j=0;j<width;j++)
-                // {
-                //     if (sample_R > 0)
-                //     {
-                //         SCOPE=up;
-                //     }
-                //     else
-                //     {
-                //         SCOPE=down;
-                //     }
-
-                //     // Aplicamos filtro FIR
-                //     //sample_R = highPass(sample_R);
-                //     //sample_L = highPass(sample_L);
-                    
-                //     //R-OUT
-                //     *ptr++ = sample_R;
-                //     //L-OUT
-                //     *ptr++ = sample_L * EN_STEREO;
-                //     //                        
-
-                //     result+=2*chn;                    
-                // }            
-
-                // // Volcamos en el buffer
-                // m_kit.write(buffer, result);  
-        }
 
         void playDRBlock(uint8_t* bBlock, int size, bool isThelastDataPart)
         {
@@ -1087,7 +1036,13 @@ class ZXProcessor
             out.begin();
 
             out.write((uint8_t*)&buffer, sizeof(int16_t));
-            out.write((uint8_t*)&buffer, sizeof(int16_t));          
+            out.write((uint8_t*)&buffer, sizeof(int16_t));      
+
+            if (OUT_TO_WAV)
+            {    
+                encoderOutWAV.write(buffer, sizeof(int16_t));
+                encoderOutWAV.write(buffer, sizeof(int16_t));
+            }
         }
 
         // Constructor
