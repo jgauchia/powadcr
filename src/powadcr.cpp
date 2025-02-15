@@ -306,6 +306,7 @@ int* strToIPAddress(String strIPAddr)
     // Si no hay nada para devolver, envio un 0.
     return 0;
 }  
+
 bool loadWifiCfgFile()
 {
    
@@ -1475,7 +1476,6 @@ void updateIndicators(int size, int pos, int fsize, int bitrate, String fname)
     }
 }
 
-
 void estimatePlayingTime(int fileread, int filesize, int samprate)
 {
 
@@ -2562,7 +2562,6 @@ void playWAV()
     // Esto lo hacemos para evitar problemas en el rotate
     rotate_enable = false;
 }
-
 
 void playingFile()
 {
@@ -4256,7 +4255,6 @@ void tapeControl()
   }
 }
 
-
 bool headPhoneDetection()
 {
   return !gpio_get_level((gpio_num_t)HEADPHONE_DETECT);
@@ -4664,6 +4662,24 @@ void setup()
     hmi.writeString("menuAudio.volR.val=" + String(MAIN_VOL_R));
     hmi.writeString("menuAudio.volLevelL.val=" + String(MAIN_VOL_L));
     hmi.writeString("menuAudio.volLevel.val=" + String(MAIN_VOL_R));
+
+    // Por defecto
+    // -------------------------------------------------------------------------
+    // Enable block end
+    hmi.writeString("menuAudio2.enTerm.val=1");
+    APPLY_END = true;
+
+    // 48KHz
+    hmi.writeString("menuAudio2.r0.val=0");
+    // 44KHz
+    hmi.writeString("menuAudio2.r1.val=0");
+    // 32KHz
+    hmi.writeString("menuAudio2.r2.val=0");
+    // 22KHz
+    hmi.writeString("menuAudio2.r3.val=1");
+    SAMPLING_RATE = 22050;
+    hmi.writeString("tape.lblFreq.txt=\"22KHz\"" );
+    // -------------------------------------------------------------------------
 
     // Asignamos el HMI
     pTAP.set_HMI(hmi);
