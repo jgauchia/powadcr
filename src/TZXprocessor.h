@@ -1169,6 +1169,8 @@ class TZXprocessor
         _myTZX.descriptor[currentBlock].nameDetected = false;
         _myTZX.descriptor[currentBlock].offset = 0;
         _myTZX.descriptor[currentBlock].jump_this_ID = false;
+        _myTZX.descriptor[currentBlock].signalLvl = false;
+
 
         switch (currentID)
         {
@@ -1484,21 +1486,45 @@ class TZXprocessor
           case 43:
             if (_myTZX.descriptor != nullptr)
             {
-              int signalLevel = getBYTE(mFile,currentOffset+4);
-              
+              int signalLevel = getBYTE(mFile,currentOffset+5);
+              _myTZX.descriptor[currentBlock].ID = 43;
+              _myTZX.descriptor[currentBlock].size = 5;
+              _myTZX.descriptor[currentBlock].offset = currentOffset + 6;
+              _myTZX.descriptor[currentBlock].playeable = false;
+
+
               // Inversion de señal            
               if(signalLevel==1)
               {
-                // Para que empiece en DOWN tiene que ser POLARIZATION = UP
-                // esto seria una señal invertida
-                POLARIZATION = up;
+                  // Para que empiece en DOWN tiene que ser POLARIZATION = UP
+                  // esto seria una señal invertida
+                  POLARIZATION = up;
+                  LAST_EAR_IS = up;
+                  INVERSETRAIN = true;
+                  _myTZX.descriptor[currentBlock].signalLvl = true;
+                              
+
+                  hmi.writeString("menuAudio2.polValue.val=1");
+
+                  // logln("");
+                  // log("Polarization INV: " + String(APPLY_END));
               }
               else
               {
-                POLARIZATION = down;
+                  POLARIZATION = down;
+                  LAST_EAR_IS = down;
+                  INVERSETRAIN = false;                
+                  _myTZX.descriptor[currentBlock].signalLvl = false;
+
+                  hmi.writeString("menuAudio2.polValue.val=0");
+
+                  // logln("");
+                  // log("Polarization DIR: " + String(APPLY_END));
               }
-              LAST_EAR_IS = POLARIZATION;
-              nextIDoffset = currentOffset + 5;            
+
+              _hmi.refreshPulseIcons(POLARIZATION,ZEROLEVEL);               
+
+              nextIDoffset = currentOffset + 6;            
 
               //_myTZX.descriptor[currentBlock].typeName = "ID 2B - Set signal level";
               strncpy(_myTZX.descriptor[currentBlock].typeName,ID2BSTR,35);
@@ -1708,6 +1734,10 @@ class TZXprocessor
                   // Agregamos la informacion del bloque al fichero del descriptor .dsc
                   _blDscTZX.putBlocksDescriptorTZX(dscFile, currentBlock,t,sizeTZX,hasGroupBlocks);
                   // Incrementamos un bloque
+                  // logln("ID: " + String(_myTZX.descriptor[currentBlock].ID));
+                  // log(" / offset: " + String(_myTZX.descriptor[currentBlock].offset));
+                  // log(" / size: " + String(_myTZX.descriptor[currentBlock].size));
+
                   currentBlock++;               
               }
               else
@@ -1731,10 +1761,14 @@ class TZXprocessor
               else
               {}
 
+
+
               if (nextIDoffset >= sizeTZX)
               {
                   // Finalizamos
                   endTZX = true;
+                  logln("END TZX analying");
+
               }
               else
               {
@@ -2248,6 +2282,47 @@ class TZXprocessor
                           // sizeTZX actual
                           myTZX.size = str.toInt();
                           sizeTZX = myTZX.size;
+                          break;
+
+                        case 36:  // Ojo! Esto es la posicion del dato en la linea!!!!
+                          // Signal level solo queda afectado si hay un ID43
+                          if (myTZX.descriptor[nblock].ID == 43)
+                          {
+                              logln("");
+                              log("Signal LEVEL");
+                              myTZX.descriptor[nblock].signalLvl = str.toInt();
+                
+                              // Inversion de señal            
+                              if(myTZX.descriptor[nblock].signalLvl)
+                              {
+                                // Para que empiece en DOWN tiene que ser POLARIZATION = UP
+                                // esto seria una señal invertida
+                                POLARIZATION = up;
+                                LAST_EAR_IS = up;
+                                INVERSETRAIN = true;
+                                myTZX.descriptor[nblock].signalLvl = true;                
+                                
+                                // logln("");
+                                // log("Polarization INV: " + String(INVERSETRAIN));
+
+                              }
+                              else
+                              {
+                                POLARIZATION = down;
+                                LAST_EAR_IS = down;
+                                INVERSETRAIN = false;                
+                                myTZX.descriptor[nblock].signalLvl = false;                
+                                
+                                // logln("");
+                                // log("Polarization DIR: " + String(INVERSETRAIN));
+                
+                              }       
+                              
+                              _hmi.refreshPulseIcons(POLARIZATION,ZEROLEVEL);                          
+                              
+                          }
+
+
                           break;
 
                         default:
@@ -2938,6 +3013,31 @@ class TZXprocessor
               LAST_BLOCK_WAS_GROUP_START = false;
               break;
 
+            case 43:
+              // Inversion de señal            
+              if(POLARIZATION == up)
+              {
+                  // Para que empiece en DOWN tiene que ser POLARIZATION = UP
+                  // esto seria una señal invertida
+                  LAST_EAR_IS = up;
+                  INVERSETRAIN = true;                
+                  hmi.writeString("menuAudio2.polValue.val=1");
+
+                  // logln("");
+                  // log("Polarization INV: " + String(APPLY_END));
+              }
+              else
+              {
+                  LAST_EAR_IS = down;
+                  INVERSETRAIN = false;                
+                  hmi.writeString("menuAudio2.polValue.val=0");
+
+                  // logln("");
+                  // log("Polarization DIR: " + String(APPLY_END));
+              }
+              _hmi.refreshPulseIcons(POLARIZATION,ZEROLEVEL);               
+              break;
+
             default:
               // Cualquier otro bloque entra por aquí, pero
               // hay que comprobar que sea REPRODUCIBLE
@@ -3263,6 +3363,9 @@ class TZXprocessor
                                   // BIT1                                          
                                   _zxp.BIT_1 = _myTZX.descriptor[i].timming.bit_1;
 
+                                  BYTES_INI = _myTZX.descriptor[i].offsetData;
+
+
                                   // Recorremos el vector de particiones del bloque.
                                   for (int n=0;n < blocks;n++)
                                   {
@@ -3274,6 +3377,11 @@ class TZXprocessor
                                     // Mostramos en la consola los primeros y últimos bytes
                                     showBufferPlay(bufferPlay,blockSizeSplit,newOffset);     
 
+                                    BYTES_INI += blockSizeSplit;
+
+                                    PROGRESS_BAR_TOTAL_VALUE = (BYTES_INI * 100 ) / BYTES_TOBE_LOAD ;
+                                    PROGRESS_BAR_BLOCK_VALUE = (BYTES_INI * 100 ) / (_myTZX.descriptor[i].offset + BYTES_IN_THIS_BLOCK);
+  
                                     #ifdef DEBUGMODE                                            
                                       log("Block. " + String(n));
                                       SerialHW.print(newOffset,HEX);                                              
@@ -3302,6 +3410,11 @@ class TZXprocessor
                                   // Calculamos el offset del último bloque
                                   newOffset = offsetBase + (blockSizeSplit*blocks);
                                   blockSizeSplit = lastBlockSize;
+                                  BYTES_INI += lastBlockSize;
+
+                                  PROGRESS_BAR_TOTAL_VALUE = (BYTES_INI * 100 ) / BYTES_TOBE_LOAD ;
+                                  PROGRESS_BAR_BLOCK_VALUE = (BYTES_INI * 100 ) / (_myTZX.descriptor[i].offset + BYTES_IN_THIS_BLOCK);
+
                                   // Accedemos a la SD y capturamos el bloque del fichero
                                   bufferPlay = (uint8_t*)ps_calloc(blockSizeSplit,sizeof(uint8_t));
                                   sdm.readFileRange32(_mFile,bufferPlay, newOffset,blockSizeSplit, true);

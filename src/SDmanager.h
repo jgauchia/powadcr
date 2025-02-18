@@ -266,7 +266,7 @@ class SDmanager
 
     tConfig* readAllParamCfg(File32 mFile, int maxParameters)
     {
-        tConfig* cfgData = new tConfig[maxParameters];
+        tConfig* cfgData = new tConfig[maxParameters+1];
 
         // Vamos a ir linea a linea obteniendo la información de cada parámetro.
         char line[256];

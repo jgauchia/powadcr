@@ -105,6 +105,7 @@ struct tTZXBlockDescriptor
   int loop_count = 0;
   bool jump_this_ID = false;
   int samplingRate = 79;
+  bool signalLvl = false;  //true == polarization UP, false == DOWN
 };
 
 // Estructura tipo TZX
@@ -426,6 +427,8 @@ String FILE_PREVIOUS_DIR = "/";
 String FILE_LAST_DIR_LAST = "../";
 String SOURCE_FILE_TO_MANAGE = "_files.lst";
 String SOURCE_FILE_INF_TO_MANAGE = "_files.inf";
+String ROTATE_FILENAME = "";
+bool ENABLE_ROTATE_FILEBROWSER = false;
 bool LST_FILE_IS_OPEN = false;
 int FILE_LAST_INDEX = 0;
 int FILE_IDX_SELECTED = -1;

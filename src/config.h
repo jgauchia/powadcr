@@ -142,6 +142,7 @@ IPAddress secondaryDNS(0, 0, 0, 0);     // Not Mandatory
 
 // HMI
 #define windowNameLength 32
+#define windowNameLengthFB 50
 #define tRotateNameRfsh 230
 
 // Limitador de volumen

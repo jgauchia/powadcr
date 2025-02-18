@@ -42,7 +42,7 @@ class BlockProcessor
 
     public:
 
-      String dscVersion = "v1.1";
+      String dscVersion = "v1.2";
 
       struct tBlDscTZX
       {
@@ -100,7 +100,7 @@ class BlockProcessor
           if(mFile.open(_blTZX.path, O_RDWR | O_CREAT))
           {
             logln("DSC file created or overwrite");
-            mFile.println(dscVersion + ",pos,ID,chk,delay,group,hasMaskLastByte,header,jump_this_ID,lenOfData,loopCount,offset,offsetData,name,nameDetected,pauseATB,playeable,samplingrate,screen,silent,size,t.Bit0,t.Bit1,t.PilotLen,t.PilotNPulses,t.PulseSeq,t.PureTone,t.PureToneNP,t.Sync1,t.Sync2,typeName,type,t.bitcfg,t.bytecfg,maskLastByte,hasGroupBlocks,SizeTZX");
+            mFile.println(dscVersion + ",pos,ID,chk,delay,group,hasMaskLastByte,header,jump_this_ID,lenOfData,loopCount,offset,offsetData,name,nameDetected,pauseATB,playeable,samplingrate,screen,silent,size,t.Bit0,t.Bit1,t.PilotLen,t.PilotNPulses,t.PulseSeq,t.PureTone,t.PureToneNP,t.Sync1,t.Sync2,typeName,type,t.bitcfg,t.bytecfg,maskLastByte,hasGroupBlocks,SizeTZX,signalLvl");
           }
         }
 
@@ -153,7 +153,8 @@ class BlockProcessor
                           String(descriptor.timming.bytecfg) + "," +
                           String(descriptor.maskLastByte) + "," +
                           String(hasGroupBlocks) + "," +
-                          String(sizeTZX));              
+                          String(sizeTZX) + "," +
+                          String(descriptor.signalLvl));              
 
         }
 

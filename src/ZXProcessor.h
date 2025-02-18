@@ -148,8 +148,16 @@ class ZXProcessor
             uint16_t sample_R = 0;
             uint16_t sample_L = 0;
 
-            sample_R = getChannelAmplitude(changeNextEARedge,true) * (MAIN_VOL_R / 100);
-            sample_L = getChannelAmplitude(changeNextEARedge,true) * (MAIN_VOL_L / 100); 
+            if (SWAP_EAR_CHANNEL)
+            {
+                sample_L = getChannelAmplitude(changeNextEARedge,true) * (MAIN_VOL_R / 100) * (MAIN_VOL / 100);
+                sample_R = getChannelAmplitude(changeNextEARedge,true) * (MAIN_VOL_L / 100) * (MAIN_VOL / 100); 
+            }
+            else
+            {
+                sample_R = getChannelAmplitude(changeNextEARedge,true) * (MAIN_VOL_R / 100) * (MAIN_VOL / 100);
+                sample_L = getChannelAmplitude(changeNextEARedge,true) * (MAIN_VOL_L / 100) * (MAIN_VOL / 100); 
+            }
 
             // Escribimos el tren de pulsos en el procesador de Audio
             // Generamos la señal en el buffer del chip de audio.
@@ -349,8 +357,18 @@ class ZXProcessor
             int samples = 1;
 
             // Ajustamos el volumen
-            sample_R = amp * (MAIN_VOL_R / 100);
-            sample_L = amp * (MAIN_VOL_L / 100);
+
+
+            if (SWAP_EAR_CHANNEL)
+            {
+                sample_L = amp * (MAIN_VOL_R / 100) * (MAIN_VOL / 100);
+                sample_R = amp * (MAIN_VOL_L / 100) * (MAIN_VOL / 100);
+            }
+            else
+            {
+                sample_R = amp * (MAIN_VOL_R / 100) * (MAIN_VOL / 100);
+                sample_L = amp * (MAIN_VOL_L / 100) * (MAIN_VOL / 100);
+            }
 
             bytes = samples * 2 * channels;
             // Generamos la onda
@@ -402,10 +420,17 @@ class ZXProcessor
             // Obtenemos la amplitud de la señal según la configuración de polarización,
             // nivel low, etc.
             amplitude = getChannelAmplitude(changeNextEARedge);
-
-            // Ajustamos el volumen
-            sample_R = amplitude * (MAIN_VOL_R / 100);
-            sample_L = amplitude * (MAIN_VOL_L / 100);
+            
+            if (SWAP_EAR_CHANNEL)
+            {
+                sample_L = amplitude * (MAIN_VOL_R / 100) * (MAIN_VOL / 100);
+                sample_R = amplitude * (MAIN_VOL_L / 100) * (MAIN_VOL / 100);
+            }
+            else
+            {
+                sample_R = amplitude * (MAIN_VOL_R / 100) * (MAIN_VOL / 100);
+                sample_L = amplitude * (MAIN_VOL_L / 100) * (MAIN_VOL / 100);
+            }
 
             // Pasamos los datos para el modo DEBUG
             DEBUG_AMP_R = sample_R;

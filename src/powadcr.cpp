@@ -2621,7 +2621,7 @@ void verifyConfigFileForSelection()
   const int max_params = 4;
   String path = FILE_LAST_DIR;
   String tmpPath = PATH_FILE_TO_LOAD;
-  tConfig *fileCfg;
+  tConfig *fileCfg;// = (tConfig*)ps_calloc(max_params,sizeof(tConfig));
   char strpath[tmpPath.length() + 5] = {};
   strcpy(strpath,tmpPath.c_str());
   strcat(strpath,".cfg");
@@ -2632,6 +2632,11 @@ void verifyConfigFileForSelection()
   logln("");
   log("path: " + String(strpath));
 
+  if (cfg.isOpen())
+  {
+    cfg.close();
+  }
+
   if (sdf.exists(strpath))
   {
     logln("");
@@ -2640,156 +2645,164 @@ void verifyConfigFileForSelection()
     if (cfg.open(strpath,O_READ))
     {
       // Leemos todos los parametros
+      //cfg.rewind();
       fileCfg = sdm.readAllParamCfg(cfg,max_params);
 
       logln("");
       log("cfg open");  
 
-      for (int i;i<max_params;i++)
+      // =================================================================================
+      //
+      // Aqui falla
+      //
+      // =================================================================================
+      for (int i=0;i<max_params;i++)
       {
-
           logln("");
           log("Param: " + fileCfg[i].cfgLine);
 
           if((fileCfg[i].cfgLine).indexOf("freq") != -1)
           {
-            SAMPLING_RATE = (sdm.getValueOfParam(fileCfg[i].cfgLine,"freq")).toInt();
+              SAMPLING_RATE = (sdm.getValueOfParam(fileCfg[i].cfgLine,"freq")).toInt();
 
-            logln("");
-            log("Sampling rate: " + String(SAMPLING_RATE));
+              logln("");
+              log("Sampling rate: " + String(SAMPLING_RATE));
 
-            switch (SAMPLING_RATE)
-            {
-            case 48000:
-              hmi.writeString("menuAudio2.r0.val=1");
-              hmi.writeString("menuAudio2.r1.val=0");
-              hmi.writeString("menuAudio2.r2.val=0");
-              hmi.writeString("menuAudio2.r3.val=0");
-              break;
+              switch (SAMPLING_RATE)
+              {
+              case 48000:
+                hmi.writeString("menuAudio2.r0.val=1");
+                hmi.writeString("menuAudio2.r1.val=0");
+                hmi.writeString("menuAudio2.r2.val=0");
+                hmi.writeString("menuAudio2.r3.val=0");
+                break;
 
-            case 44100:
-              hmi.writeString("menuAudio2.r0.val=0");
-              hmi.writeString("menuAudio2.r1.val=1");
-              hmi.writeString("menuAudio2.r2.val=0");
-              hmi.writeString("menuAudio2.r3.val=0");
-              break;
+              case 44100:
+                hmi.writeString("menuAudio2.r0.val=0");
+                hmi.writeString("menuAudio2.r1.val=1");
+                hmi.writeString("menuAudio2.r2.val=0");
+                hmi.writeString("menuAudio2.r3.val=0");
+                break;
 
-            case 32000:
-              hmi.writeString("menuAudio2.r0.val=0");
-              hmi.writeString("menuAudio2.r1.val=0");
-              hmi.writeString("menuAudio2.r2.val=1");
-              hmi.writeString("menuAudio2.r3.val=0");
-              break;
+              case 32000:
+                hmi.writeString("menuAudio2.r0.val=0");
+                hmi.writeString("menuAudio2.r1.val=0");
+                hmi.writeString("menuAudio2.r2.val=1");
+                hmi.writeString("menuAudio2.r3.val=0");
+                break;
 
-            case 22050:
-              hmi.writeString("menuAudio2.r0.val=0");
-              hmi.writeString("menuAudio2.r1.val=0");
-              hmi.writeString("menuAudio2.r2.val=0");
-              hmi.writeString("menuAudio2.r3.val=1");
-              break;
+              case 22050:
+                hmi.writeString("menuAudio2.r0.val=0");
+                hmi.writeString("menuAudio2.r1.val=0");
+                hmi.writeString("menuAudio2.r2.val=0");
+                hmi.writeString("menuAudio2.r3.val=1");
+                break;
 
-            default:
-              // Por defecto es 44.1KHz
-              hmi.writeString("menuAudio2.r0.val=0");
-              hmi.writeString("menuAudio2.r1.val=1");
-              hmi.writeString("menuAudio2.r2.val=0");
-              hmi.writeString("menuAudio2.r3.val=0");
-              break;
-            }
+              default:
+                // Por defecto es 44.1KHz
+                hmi.writeString("menuAudio2.r0.val=0");
+                hmi.writeString("menuAudio2.r1.val=0");
+                hmi.writeString("menuAudio2.r2.val=0");
+                hmi.writeString("menuAudio2.r3.val=1");
+                break;
+              }
           }
           else if((fileCfg[i].cfgLine).indexOf("zerolevel") != -1)
           {
-            ZEROLEVEL = sdm.getValueOfParam(fileCfg[i].cfgLine,"zerolevel").toInt();
+              ZEROLEVEL = sdm.getValueOfParam(fileCfg[i].cfgLine,"zerolevel").toInt();
 
-            logln("");
-            log("Zero level: " + String(ZEROLEVEL));
+              logln("");
+              log("Zero level: " + String(ZEROLEVEL));
 
-            if (ZEROLEVEL==1)
-            {
-              hmi.writeString("menuAudio2.lvlLowZero.val=1");
-            }
-            else
-            {
-              hmi.writeString("menuAudio2.lvlLowZero.val=0");
-            }
+              if (ZEROLEVEL==1)
+              {
+                hmi.writeString("menuAudio2.lvlLowZero.val=1");
+              }
+              else
+              {
+                hmi.writeString("menuAudio2.lvlLowZero.val=0");
+              }
           }
           else if((fileCfg[i].cfgLine).indexOf("blockend") != -1)
           {
-            APPLY_END = sdm.getValueOfParam(fileCfg[i].cfgLine,"blockend").toInt();
+              APPLY_END = sdm.getValueOfParam(fileCfg[i].cfgLine,"blockend").toInt();
 
-            logln("");
-            log("Terminator forzed: " + String(APPLY_END));
+              logln("");
+              log("Terminator forzed: " + String(APPLY_END));
 
-            if (APPLY_END==1)
-            {
-              hmi.writeString("menuAudio2.enTerm.val=1");
-            }
-            else
-            {
-              hmi.writeString("menuAudio2.enTerm.val=0");
-            }
+              if (APPLY_END==1)
+              {
+                hmi.writeString("menuAudio2.enTerm.val=1");
+              }
+              else
+              {
+                hmi.writeString("menuAudio2.enTerm.val=0");
+              }
           }
           else if((fileCfg[i].cfgLine).indexOf("polarized") != -1)
           {
-            if((sdm.getValueOfParam(fileCfg[i].cfgLine,"polarized")) == "1")
-            {
-                // Para que empiece en DOWN tenemos que poner POLARIZATION en UP
-                // Una señal con INVERSION de pulso es POLARIZACION = UP (empieza en DOWN)
-                POLARIZATION = up;
-                LAST_EAR_IS = up;
-                INVERSETRAIN = true;
+              if((sdm.getValueOfParam(fileCfg[i].cfgLine,"polarized")) == "1")
+              {
+                  // Para que empiece en DOWN tenemos que poner POLARIZATION en UP
+                  // Una señal con INVERSION de pulso es POLARIZACION = UP (empieza en DOWN)
+                  POLARIZATION = up;
+                  LAST_EAR_IS = up;
+                  INVERSETRAIN = true;
 
-                if (POLARIZATION==up)
-                {
-                  hmi.writeString("menuAudio2.polValue.val=1");
+                  if (POLARIZATION==up)
+                  {
+                    hmi.writeString("menuAudio2.polValue.val=1");
 
-                  logln("");
-                  log("Polarization INV: " + String(APPLY_END));
+                    logln("");
+                    log("Polarization INV: " + String(APPLY_END));
 
-                }
-                else
-                {
-                  hmi.writeString("menuAudio2.polValue.val=0");
+                  }
+                  else
+                  {
+                    hmi.writeString("menuAudio2.polValue.val=0");
 
-                  logln("");
-                  log("Polarization DIR: " + String(APPLY_END));
-                }
-            }
-            else
-            {
-              POLARIZATION = down;
-              LAST_EAR_IS = down;
-              INVERSETRAIN = false;
-            }            
+                    logln("");
+                    log("Polarization DIR: " + String(APPLY_END));
+                  }
+              }
+              else
+              {
+                POLARIZATION = down;
+                LAST_EAR_IS = down;
+                INVERSETRAIN = false;
+              }            
           }
       }
 
       if (INVERSETRAIN)
       {
-        if (ZEROLEVEL)
-        {
-          hmi.writeString("tape.pulseInd.pic=36");
-        }
-        else
-        {
-          hmi.writeString("tape.pulseInd.pic=33");
-        }
+          if (ZEROLEVEL)
+          {
+            hmi.writeString("tape.pulseInd.pic=36");
+          }
+          else
+          {
+            hmi.writeString("tape.pulseInd.pic=33");
+          }
       }
       else
       {
-        if (ZEROLEVEL)
-        {
-          hmi.writeString("tape.pulseInd.pic=35");
-        }
-        else
-        {
-          hmi.writeString("tape.pulseInd.pic=34");
-        }        
+          if (ZEROLEVEL)
+          {
+            hmi.writeString("tape.pulseInd.pic=35");
+          }
+          else
+          {
+            hmi.writeString("tape.pulseInd.pic=34");
+          }        
       }
     }
 
     cfg.close();
   }
+
+  //free(fileCfg);
+
 }
 
 void loadingFile(char* file_ch)
@@ -4360,9 +4373,9 @@ void Task0code( void * pvParameters )
             hmi.updateInformationMainPage();
           }    
 
-          if (rotate_enable)
+          if (rotate_enable || ENABLE_ROTATE_FILEBROWSER)
           {
-              if ((millis() - startTime2) > tRotateNameRfsh && FILE_LOAD.length() > windowNameLength)
+              if ((millis() - startTime2) > tRotateNameRfsh && (FILE_LOAD.length() > windowNameLength || ((ROTATE_FILENAME.length() > windowNameLengthFB)) * ENABLE_ROTATE_FILEBROWSER))
               {
                 // Capturamos el texto con tamaño de la ventana
                 if ((TYPE_FILE_LOAD == "WAV" || TYPE_FILE_LOAD == "MP3"))
@@ -4371,20 +4384,43 @@ void Task0code( void * pvParameters )
                 }
                 else
                 {
-                  PROGRAM_NAME = FILE_LOAD.substring(posRotateName, posRotateName + windowNameLength);
+                  if (!ENABLE_ROTATE_FILEBROWSER)
+                  {
+                    PROGRAM_NAME = FILE_LOAD.substring(posRotateName, posRotateName + windowNameLength);
+                  }
+                  else
+                  {
+                    hmi.writeString("file.path.txt=\"" + ROTATE_FILENAME.substring(posRotateName, posRotateName + windowNameLengthFB) + "\"");
+                  }
                 }
                 // Lo rotamos segun el sentido que toque
                 posRotateName += moveDirection;
                 // Comprobamos limites para ver si hay que cambiar sentido
-                if (posRotateName > (FILE_LOAD.length() - windowNameLength))
+                if (!ENABLE_ROTATE_FILEBROWSER)
                 {
-                    moveDirection = -1;
+                    if (posRotateName > (FILE_LOAD.length() - windowNameLength))
+                    {
+                        moveDirection = -1;
+                    }
+                    
+                    if (posRotateName < 0)
+                    {
+                        moveDirection = 1;
+                        posRotateName = 0;
+                    }
                 }
-                
-                if (posRotateName < 0)
+                else
                 {
-                    moveDirection = 1;
-                    posRotateName = 0;
+                    if (posRotateName > (ROTATE_FILENAME.length() - windowNameLengthFB))
+                    {
+                        moveDirection = -1;
+                    }
+                    
+                    if (posRotateName < 0)
+                    {
+                        moveDirection = 1;
+                        posRotateName = 0;
+                    }                  
                 }
 
                 // Movemos el display de NAME
@@ -4395,6 +4431,17 @@ void Task0code( void * pvParameters )
                 hmi.writeString("name.txt=\"" + FILE_LOAD + "\"");  
               }              
           }
+          // else
+          // {
+          //   if (!FILE_BROWSER_OPEN)
+          //   {
+          //     hmi.writeString("name.txt=\"" + FILE_LOAD + "\"");
+          //   }
+          //   else
+          //   {
+          //     hmi.writeString("file.path.txt=\"" + ROTATE_FILENAME + "\"");
+          //   }
+          // }
  
 
         #endif
@@ -4666,8 +4713,8 @@ void setup()
     // Por defecto
     // -------------------------------------------------------------------------
     // Enable block end
-    hmi.writeString("menuAudio2.enTerm.val=1");
-    APPLY_END = true;
+    // hmi.writeString("menuAudio2.enTerm.val=");
+    // APPLY_END = true;
 
     // 48KHz
     hmi.writeString("menuAudio2.r0.val=0");
@@ -4679,6 +4726,7 @@ void setup()
     hmi.writeString("menuAudio2.r3.val=1");
     SAMPLING_RATE = 22050;
     hmi.writeString("tape.lblFreq.txt=\"22KHz\"" );
+    hmi.refreshPulseIcons(POLARIZATION,ZEROLEVEL); 
     // -------------------------------------------------------------------------
 
     // Asignamos el HMI

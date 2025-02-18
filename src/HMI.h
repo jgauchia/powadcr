@@ -801,7 +801,7 @@ class HMI
 
           clearFileBuffer();
 
-          logln("Paso 3");
+          //logln("Paso 3");
 
           #ifdef DEBUGMODE
             logln("");
@@ -816,7 +816,7 @@ class HMI
               sdm.dir.close();
           }
 
-          logln("Paso 4");
+          //logln("Paso 4");
 
           if (!sdm.dir.open(FILE_LAST_DIR.c_str())) 
           {
@@ -826,7 +826,7 @@ class HMI
           else
           {
               
-              logln("Paso 5");
+              //logln("Paso 5");
 
 
               // El directorio se ha abierto sin problemas
@@ -856,11 +856,11 @@ class HMI
               // para obtener el numero de items pero solo si no estoy buscando nada.
               if (search_pattern == "")
               {
-                  logln("Paso 6");
+                  //logln("Paso 6");
 
                   countTotalLinesInLST(FILE_LAST_DIR, SOURCE_FILE_INF_TO_MANAGE);
 
-                  logln("Paso 7");
+                  //logln("Paso 7");
 
               }
     
@@ -878,18 +878,18 @@ class HMI
               if (FILE_PTR_POS!=0)
               {
                   putFilePtrInPosition(fFileLST,FILE_PTR_POS-1);
-                              logln("Paso 8");
+                              //logln("Paso 8");
 
               }
               else
               {
                   putFilePtrInPosition(fFileLST,0);
-                              logln("Paso 9");
+                              //logln("Paso 9");
 
               }
 
               putFilesInList();
-                          logln("Paso 10");
+                          // logln("Paso 10");
 
 
               // writeString("statusFILE.txt=\"ITEMS " + String(FILE_TOTAL_FILES) +"\"");
@@ -1626,6 +1626,7 @@ class HMI
             // Con este comando nos indica la pantalla que 
             // está SALE del modo FILEBROWSER
             FILE_BROWSER_OPEN = false;
+            ENABLE_ROTATE_FILEBROWSER = false;
             #ifdef DEBUGMODE
               logAlert("OUTFB output: File browser closed");
             #endif
@@ -1900,7 +1901,7 @@ class HMI
           int idsel = sbstr.toInt();
           int blsel = (MAX_BLOCKS_IN_BROWSER * BB_PAGE_SELECTED) - (MAX_BLOCKS_IN_BROWSER - idsel);
 
-          logln("Bloque seleccionado: " + String(blsel));
+          //logln("Bloque seleccionado: " + String(blsel));
 
           if (blsel >= 0 && blsel <= TOTAL_BLOCKS)
           {
@@ -2022,14 +2023,14 @@ class HMI
             // clearFilesInScreen(); // 02/12/2024
             writeString("statusFILE.txt=\"READING\"");  
 
-            logln("Paso 1");
+            //logln("Paso 1");
             if (fFileLST.isOpen())
             {
               fFileLST.close();
               LST_FILE_IS_OPEN = false;
             }
 
-            logln("Paso 2");
+            //logln("Paso 2");
 
             String recDirTmp = FILE_LAST_DIR;
             recDirTmp.toUpperCase();
@@ -2112,6 +2113,18 @@ class HMI
             refreshFiles();
       
         }
+        else if (strCmd.indexOf("ROT=") != -1) 
+        {
+            // Con este comando capturamos el directorio a cambiar
+            uint8_t buff[8];
+            strCmd.getBytes(buff, 7);
+            long val = (long)((int)buff[4] + (256*(int)buff[5]) + (65536*(int)buff[6]));
+            String num = String(val);
+      
+            int idx = num.toInt();         
+            ROTATE_FILENAME = FILES_BUFF[idx+1].path;
+            ENABLE_ROTATE_FILEBROWSER = true;
+        }
         else if (strCmd.indexOf("TRS=") != -1) 
         {
             // Con este comando
@@ -2168,7 +2181,7 @@ class HMI
                     else
                     {
                       FILE_SELECTED_DELETE = false;
-                      logln("File remove. " + FILE_TO_DELETE);
+                      //logln("File remove. " + FILE_TO_DELETE);
                       
                       // Tras borrar hacemos un rescan
                       getFilesFromSD(true,SOURCE_FILE_TO_MANAGE,SOURCE_FILE_INF_TO_MANAGE);      
@@ -2298,14 +2311,22 @@ class HMI
             logAlert("PLAY pressed.");
           #endif
 
-          PLAY = true;
-          PAUSE = false;
-          STOP = false;
-          REC = false;
-          EJECT = false;
-          ABORT = false;
+          if(!WF_UPLOAD_TO_SD)
+          {
+            PLAY = true;
+            PAUSE = false;
+            STOP = false;
+            REC = false;
+            EJECT = false;
+            ABORT = false;
+  
+            BTN_PLAY_PRESSED = true;  
+          }
+          else
+          {
+            LAST_MESSAGE = "Wait to finish the uploading process.";
+          }
 
-          BTN_PLAY_PRESSED = true;
         }   
         else if (strCmd.indexOf("REC") != -1) 
         {
@@ -2450,11 +2471,11 @@ class HMI
           }
 
           // Ajustamos el volumen
-          logln("Main volume value=" + String(MAIN_VOL));
+          //logln("Main volume value=" + String(MAIN_VOL));
 
           // Control del Master volume
-          MAIN_VOL_L = MAIN_VOL;
-          MAIN_VOL_R = MAIN_VOL;
+          // MAIN_VOL_L = MAIN_VOL;
+          // MAIN_VOL_R = MAIN_VOL;
         }
         // Ajuste el vol canal R
         else if (strCmd.indexOf("VRR=") != -1) 
@@ -2507,7 +2528,7 @@ class HMI
 
           EQ_HIGH = valVol/100.0;      
           EQ_CHANGE = true;    
-          logln("EQ HIGH: " + String(EQ_HIGH)); 
+          //logln("EQ HIGH: " + String(EQ_HIGH)); 
         } 
         else if (strCmd.indexOf("EQM=") != -1) 
         {
@@ -2518,7 +2539,7 @@ class HMI
 
           EQ_MID = valVol/100.0;          
           EQ_CHANGE = true;    
-          logln("EQ MID: " + String(EQ_MID)); 
+          //logln("EQ MID: " + String(EQ_MID)); 
         }   
         else if (strCmd.indexOf("EQL=") != -1) 
         {
@@ -2529,7 +2550,7 @@ class HMI
 
           EQ_LOW = valVol/100.0;          
           EQ_CHANGE = true;   
-          logln("EQ LOW: " + String(EQ_LOW)); 
+          //logln("EQ LOW: " + String(EQ_LOW)); 
         }                      
         // Devuelve el % de filtrado aplicado en pantalla. Filtro del recording
         else if (strCmd.indexOf("THR=") != -1) 
@@ -2539,7 +2560,7 @@ class HMI
           strCmd.getBytes(buff, 7);
           int valThr = (int)buff[4];
           SCHMITT_THR = valThr;
-          logln("Threshold value=" + String(SCHMITT_THR));
+          //logln("Threshold value=" + String(SCHMITT_THR));
         }
         // Habilitar terminadores para forzar siguiente pulso a HIGH
         else if (strCmd.indexOf("TER=") != -1) 
@@ -2561,8 +2582,8 @@ class HMI
           }
 
           // #ifdef DEBUGMODE
-            logln("");
-            log("Terminadores =" + String(APPLY_END));
+            //logln("");
+            //logln("Terminadores =" + String(APPLY_END));
           // #endif
         }
         // Polarización de la señal
@@ -2588,8 +2609,8 @@ class HMI
               INVERSETRAIN = false;
           }
 
-          logln("");
-          log("Polarization =" + String(INVERSETRAIN));
+          //logln("");
+          //logln("Polarization =" + String(INVERSETRAIN));
 
         }
         // Nivel LOW a cero
@@ -2611,8 +2632,8 @@ class HMI
               ZEROLEVEL = false;
           }
           
-          logln("");
-          log("Down level is ZERO =" + String(ZEROLEVEL));
+          //logln("");
+          //logln("Down level is ZERO =" + String(ZEROLEVEL));
 
         }
         // Enable Schmitt Trigger threshold adjust
@@ -2632,8 +2653,8 @@ class HMI
               EN_SCHMITT_CHANGE = false;
           }
 
-          logln("");
-          log("Threshold enable=" + String(EN_SCHMITT_CHANGE));
+          //logln("");
+          //logln("Threshold enable=" + String(EN_SCHMITT_CHANGE));
 
         }
         // Mutea la salida amplificada
@@ -2646,15 +2667,26 @@ class HMI
           //
           ACTIVE_AMP = !valEn;
 
-          // Bajamos el volumen del speaker que esta en el canal amplificado DERECHO
-          MAIN_VOL_R = 5;
-          // Actualizamos el HMI
-          writeString("menuAudio.volR.val=" + String(MAIN_VOL_R));
-          writeString("menuAudio.volLevel.val=" + String(MAIN_VOL_R));
+          if (ACTIVE_AMP)
+          {
+            // Bajamos el volumen del speaker que esta en el canal amplificado DERECHO
+            MAIN_VOL_L = 5;
+            // Actualizamos el HMI
+            writeString("menuAudio.volL.val=" + String(MAIN_VOL_L));
+            writeString("menuAudio.volLevel.val=" + String(MAIN_VOL_L));
+          }
+          else
+          {
+            // Bajamos el volumen del speaker que esta en el canal amplificado DERECHO
+            MAIN_VOL_L = MAIN_VOL_R;
+            // Actualizamos el HMI
+            writeString("menuAudio.volL.val=" + String(MAIN_VOL_L));
+            writeString("menuAudio.volLevel.val=" + String(MAIN_VOL_L));
+          }
 
           // Habilitamos/Deshabilitamos el amplificador
           ESP32kit.setSpeakerActive(ACTIVE_AMP);
-          logln("Active amp=" + String(ACTIVE_AMP));
+          //logln("Active amp=" + String(ACTIVE_AMP));
         }        
         // Habilita los dos canales
         else if (strCmd.indexOf("STE=") != -1) 
@@ -2666,7 +2698,7 @@ class HMI
           //
           EN_STEREO = valEn;
 
-          logln("Mute enable=" + String(EN_STEREO));
+          //logln("Mute enable=" + String(EN_STEREO));
         }
         // Enable MIC left channel - Option
         else if (strCmd.indexOf("EMI=") != -1) 
@@ -2684,7 +2716,7 @@ class HMI
           {
               SWAP_MIC_CHANNEL = false;
           }
-          logln("MIC LEFT enable=" + String(SWAP_MIC_CHANNEL));
+          //logln("MIC LEFT enable=" + String(SWAP_MIC_CHANNEL));
         }
         // Enable MIC left channel - Option
         else if (strCmd.indexOf("EAR=") != -1) 
@@ -2711,7 +2743,7 @@ class HMI
           // Habilitamos/Deshabilitamos el amplificador
           ESP32kit.setSpeakerActive(ACTIVE_AMP);
 
-          logln("EAR LEFT enable=" + String(SWAP_EAR_CHANNEL));
+          //logln("EAR LEFT enable=" + String(SWAP_EAR_CHANNEL));
         }
         // Save polarization in ID 0x2B
         else if (strCmd.indexOf("SAV") != -1) 
@@ -2725,15 +2757,15 @@ class HMI
 
           File32 cfg;
 
-          logln("");
-          log("Saving configuration in " + String(strpath));
+          //logln("");
+          //logln("Saving configuration in " + String(strpath));
 
           if (cfg.open(strpath,O_WRITE | O_CREAT))
           {
             // Creamos el fichero de configuracion.
  
-            logln("");
-            log("file created - ");
+            //logln("");
+            //logln("file created - ");
 
             // Ahora escribimos la configuracion
             cfg.println("<freq>"+ String(SAMPLING_RATE) +"</freq>");        
@@ -2800,7 +2832,7 @@ class HMI
           if (valEn==1)
           {
               WAV_SAMPLING_RATE = myNex.readNumber("menuAudio4.va0.val");
-              logln("Custom sampling rate: " + String(WAV_SAMPLING_RATE));
+              //logln("Custom sampling rate: " + String(WAV_SAMPLING_RATE));
           }
 
           WAV_UPDATE = true;                         
@@ -3018,7 +3050,7 @@ class HMI
           {
               SHOW_DATA_DEBUG = false;
           }
-          logln("SHOW_DATA_DEBUG enable=" + String(SHOW_DATA_DEBUG));
+          //logln("SHOW_DATA_DEBUG enable=" + String(SHOW_DATA_DEBUG));
         }     
         // Parametrizado del timming maquinas. ROM estandar (no se usa)
         else if (strCmd.indexOf("MP1=") != -1) 
@@ -3029,7 +3061,7 @@ class HMI
           int val = (int)buff[4];
           //
           MIN_SYNC=val;
-          logln("MP1=" + String(MIN_SYNC));
+          //logln("MP1=" + String(MIN_SYNC));
         }
         else if (strCmd.indexOf("MP2=") != -1) 
         {
@@ -3039,7 +3071,7 @@ class HMI
           int val = (int)buff[4];
           //
           MAX_SYNC=val;
-          logln("MP2=" + String(MAX_SYNC));
+          //logln("MP2=" + String(MAX_SYNC));
         }
         else if (strCmd.indexOf("MP3=") != -1) 
         {
@@ -3049,7 +3081,7 @@ class HMI
           int val = (int)buff[4];
           //
           MIN_BIT0=val;
-          logln("MP3=" + String(MIN_BIT0));
+          //logln("MP3=" + String(MIN_BIT0));
         }
         else if (strCmd.indexOf("MP4=") != -1) 
         {
@@ -3059,7 +3091,7 @@ class HMI
           int val = (int)buff[4];
           //
           MAX_BIT0=val;
-          logln("MP4=" + String(MAX_BIT0));
+          //logln("MP4=" + String(MAX_BIT0));
         }
         else if (strCmd.indexOf("MP5=") != -1) 
         {
@@ -3069,7 +3101,7 @@ class HMI
           int val = (int)buff[4];
           //
           MIN_BIT1=val;
-          logln("MP5=" + String(MIN_BIT1));
+          //logln("MP5=" + String(MIN_BIT1));
         }
         else if (strCmd.indexOf("MP6=") != -1) 
         {
@@ -3079,7 +3111,7 @@ class HMI
           int val = (int)buff[4];
           //
           MAX_BIT1=val;
-          logln("MP6=" + String(MAX_BIT1));
+          //logln("MP6=" + String(MAX_BIT1));
         }
         else if (strCmd.indexOf("MP7=") != -1) 
         {
@@ -3099,7 +3131,7 @@ class HMI
           long val = (long)((int)buff[4] + (256*(int)buff[5]) + (65536*(int)buff[6]));
           //
           MAX_PULSES_LEAD=val;
-          logln("MP7=" + String(MAX_PULSES_LEAD));
+          //logln("MP7=" + String(MAX_PULSES_LEAD));
         }
         else if (strCmd.indexOf("MP8=") != -1) 
         {
@@ -3109,7 +3141,7 @@ class HMI
           int val = (int)buff[4];
           //
           MIN_LEAD=val;
-          logln("MP8=" + String(MIN_LEAD));
+          //logln("MP8=" + String(MIN_LEAD));
         }
         else if (strCmd.indexOf("MP9=") != -1) 
         {
@@ -3119,7 +3151,7 @@ class HMI
           int val = buff[4];
           //
           MAX_LEAD=val;
-          logln("MP9=" + String(MAX_LEAD));
+          //logln("MP9=" + String(MAX_LEAD));
         }
         // Control de volumen por botones - MASTER
         else if (strCmd.indexOf("VOLUP") != -1) 
@@ -3781,6 +3813,32 @@ class HMI
           lst_stackFreeCore1 = BLOCK_SELECTED;
           lst_psram_free = ESP.getFreePsram();
           lst_stack_free = ESP.getFreeHeap();
+      }
+
+      void refreshPulseIcons(bool polValue, bool lvlLowZeroValue)
+      {            
+          if (polValue == 1) 
+          {
+              if (lvlLowZeroValue == 1)
+              {          
+                writeString("tape.pulseInd.pic=36");
+              }
+              else
+              {
+                writeString("tape.pulseInd.pic=33");
+              }
+          }
+          else
+          {
+              if (lvlLowZeroValue == 1)
+              {          
+                writeString("tape.pulseInd.pic=35");
+              }
+              else
+              {
+                writeString("tape.pulseInd.pic=34");
+              }          
+          }
       }
 
       // Constructor
