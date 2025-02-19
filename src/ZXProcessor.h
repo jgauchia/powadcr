@@ -799,11 +799,17 @@ class ZXProcessor
 
             double samples = 0;
             double rsamples = 0; 
+            int ptrOffset = 0;
 
             for (int i = 0; i < numPulses;i++)
             {
                 // Generamos los semipulsos        
                 semiPulse(data[i],true);
+
+                ptrOffset = i;
+                    
+                //PROGRESS_BAR_TOTAL_VALUE = ((PRG_BAR_OFFSET_INI + (ptrOffset+1)) * 100 ) / BYTES_TOBE_LOAD ;
+                
             }
         }   
 
