@@ -2555,7 +2555,7 @@ class TZXprocessor
 
               // Calculamos el offset del bloque
               newOffset = offsetBase + (blockSizeSplit*n);
-              BYTES_INI = newOffset;
+              PRG_BAR_OFFSET_INI = newOffset;
 
               // Accedemos a la SD y capturamos el bloque del fichero
               bufferPlay = (uint8_t*)ps_calloc(blockSizeSplit,sizeof(uint8_t));
@@ -2606,7 +2606,7 @@ class TZXprocessor
 
             // Calculamos el offset del último bloque
             newOffset = offsetBase + (blockSizeSplit*blocks);
-            BYTES_INI = newOffset;
+            PRG_BAR_OFFSET_INI = newOffset;
 
             blockSizeSplit = lastBlockSize;
             // Accedemos a la SD y capturamos el bloque del fichero
@@ -2635,6 +2635,8 @@ class TZXprocessor
         }
         else
         {
+            PRG_BAR_OFFSET_INI = descriptor.offsetData;  
+
             // Si es mas pequeño que el SPLIT, se reproduce completo.
             bufferPlay = (uint8_t*)ps_calloc(descriptor.size,sizeof(uint8_t));
             sdm.readFileRange32(_mFile,bufferPlay, descriptor.offsetData, descriptor.size, true);
@@ -2837,7 +2839,8 @@ class TZXprocessor
         // Ahora lo voy actualizando a medida que van avanzando los bloques.
         PROGRAM_NAME_2 = _myTZX.descriptor[BLOCK_SELECTED].name;
 
-        BYTES_IN_THIS_BLOCK = _myTZX.descriptor[i].size;
+        // El offset final sera el offsetdata + size
+        PRG_BAR_OFFSET_END = _myTZX.descriptor[i].offsetData + _myTZX.descriptor[i].size;
         
         DIRECT_RECORDING = false;
 
@@ -3217,10 +3220,11 @@ class TZXprocessor
                               // Nos quedamos con el offset inicial
                               offset = _myTZX.descriptor[i].offsetData;
                               
-                              BYTES_INI = offset;
+                              PRG_BAR_OFFSET_INI = offset;  //offset del DATA
+                              PRG_BAR_OFFSET_END = offset + _myTZX.descriptor[i].lengthOfData;
 
-                              PROGRESS_BAR_TOTAL_VALUE = (BYTES_INI * 100 ) / BYTES_TOBE_LOAD ;
-                              PROGRESS_BAR_BLOCK_VALUE = (BYTES_INI * 100 ) / (_myTZX.descriptor[i].offset + BYTES_IN_THIS_BLOCK) ;
+                              // PROGRESS_BAR_TOTAL_VALUE = (PRG_BAR_OFFSET_INI * 100 ) / BYTES_TOBE_LOAD ;
+                              // PROGRESS_BAR_BLOCK_VALUE = (PRG_BAR_OFFSET_INI * 100 ) / (_myTZX.descriptor[i].offset + BYTES_IN_THIS_BLOCK) ;
 
                               bufferD = 1024;  // Buffer de BYTES de datos convertidos a samples
 
@@ -3266,9 +3270,7 @@ class TZXprocessor
 
                                       _zxp.playCustomSequence(_myTZX.descriptor[i].timming.pulse_seq_array,_myTZX.descriptor[i].timming.pulse_seq_num_pulses,0.0);                                                                           
                                       offset += bufferD;
-                                      BYTES_INI += bufferD;
-                                      PROGRESS_BAR_TOTAL_VALUE = (BYTES_INI * 100 ) / BYTES_TOBE_LOAD ;
-                                      PROGRESS_BAR_BLOCK_VALUE = (BYTES_INI * 100 ) / (_myTZX.descriptor[i].offset + BYTES_IN_THIS_BLOCK);
+                                      PRG_BAR_OFFSET_INI = offset;
 
                                       // Liberamos el array
                                       free(_myTZX.descriptor[i].timming.pulse_seq_array);
@@ -3281,7 +3283,7 @@ class TZXprocessor
                                       // Ultima particion
                                       prepareID4B(i,_mFile,nlb,vlb,ntb,vtb,pzero,pone, offset, lastPartitionSize,false);
                                       // ID 0x4B - Reproducimos una secuencia. Pulsos de longitud contenidos en un array y repetición                                                                    
-                                      BYTES_INI += lastPartitionSize;
+                                      PRG_BAR_OFFSET_INI = offset;
 
                                       _zxp.playCustomSequence(_myTZX.descriptor[i].timming.pulse_seq_array,_myTZX.descriptor[i].timming.pulse_seq_num_pulses,0.0); 
                                       // Liberamos el array
@@ -3304,7 +3306,10 @@ class TZXprocessor
 
                                   if (!STOP && !PAUSE)
                                   {                                      
+
                                       // Una sola particion
+                                      PRG_BAR_OFFSET_INI = _myTZX.descriptor[i].offsetData;
+                                      
                                       prepareID4B(i,_mFile,nlb,vlb,ntb,vtb,pzero,pone, offset, ldatos,true);
 
                                       // ID 0x4B - Reproducimos una secuencia. Pulsos de longitud contenidos en un array y repetición                                                                    
@@ -3363,8 +3368,8 @@ class TZXprocessor
                                   // BIT1                                          
                                   _zxp.BIT_1 = _myTZX.descriptor[i].timming.bit_1;
 
-                                  BYTES_INI = _myTZX.descriptor[i].offsetData;
-
+                                  PRG_BAR_OFFSET_INI = _myTZX.descriptor[i].offsetData;
+                                  //BYTES_BASE = _myTZX.descriptor[i].offsetData;
 
                                   // Recorremos el vector de particiones del bloque.
                                   for (int n=0;n < blocks;n++)
@@ -3377,10 +3382,11 @@ class TZXprocessor
                                     // Mostramos en la consola los primeros y últimos bytes
                                     showBufferPlay(bufferPlay,blockSizeSplit,newOffset);     
 
-                                    BYTES_INI += blockSizeSplit;
+                                    PRG_BAR_OFFSET_INI = newOffset;
+                                    //BYTES_BASE = _myTZX.descriptor[i].offsetData;
 
-                                    PROGRESS_BAR_TOTAL_VALUE = (BYTES_INI * 100 ) / BYTES_TOBE_LOAD ;
-                                    PROGRESS_BAR_BLOCK_VALUE = (BYTES_INI * 100 ) / (_myTZX.descriptor[i].offset + BYTES_IN_THIS_BLOCK);
+                                    // PROGRESS_BAR_TOTAL_VALUE = (PRG_BAR_OFFSET_INI * 100 ) / BYTES_TOBE_LOAD ;
+                                    // PROGRESS_BAR_BLOCK_VALUE = (PRG_BAR_OFFSET_INI * 100 ) / (BYTES_BASE + BYTES_IN_THIS_BLOCK);
   
                                     #ifdef DEBUGMODE                                            
                                       log("Block. " + String(n));
@@ -3410,10 +3416,11 @@ class TZXprocessor
                                   // Calculamos el offset del último bloque
                                   newOffset = offsetBase + (blockSizeSplit*blocks);
                                   blockSizeSplit = lastBlockSize;
-                                  BYTES_INI += lastBlockSize;
+                                  PRG_BAR_OFFSET_INI = newOffset;
+                                  //BYTES_BASE = _myTZX.descriptor[i].offsetData;
 
-                                  PROGRESS_BAR_TOTAL_VALUE = (BYTES_INI * 100 ) / BYTES_TOBE_LOAD ;
-                                  PROGRESS_BAR_BLOCK_VALUE = (BYTES_INI * 100 ) / (_myTZX.descriptor[i].offset + BYTES_IN_THIS_BLOCK);
+                                  // PROGRESS_BAR_TOTAL_VALUE = (PRG_BAR_OFFSET_INI * 100 ) / BYTES_TOBE_LOAD ;
+                                  // PROGRESS_BAR_BLOCK_VALUE = (PRG_BAR_OFFSET_INI * 100 ) / (_myTZX.descriptor[i].offset + BYTES_IN_THIS_BLOCK);
 
                                   // Accedemos a la SD y capturamos el bloque del fichero
                                   bufferPlay = (uint8_t*)ps_calloc(blockSizeSplit,sizeof(uint8_t));
@@ -3545,11 +3552,11 @@ class TZXprocessor
 
                   if (BLOCK_SELECTED == 0) 
                   {
-                    BYTES_INI = 0;
+                    PRG_BAR_OFFSET_INI = 0;
                   }
                   else
                   {
-                    BYTES_INI = _myTZX.descriptor[BLOCK_SELECTED].offset;
+                    PRG_BAR_OFFSET_INI = _myTZX.descriptor[BLOCK_SELECTED].offset;
                   }
 
                   _hmi.setBasicFileInformation(_myTZX.descriptor[i].ID,_myTZX.descriptor[i].group,_myTZX.descriptor[i].name,_myTZX.descriptor[i].typeName,_myTZX.descriptor[i].size,_myTZX.descriptor[i].playeable);

@@ -588,7 +588,8 @@ class ZXProcessor
         {
             uint8_t _mask = 8;   // Para el last_byte
             uint8_t bRead = 0x00;
-            int bytes_in_this_block = 0;     
+            int bytes_in_this_block = 0;    
+            int ptrOffset = 0; 
 
             // Procedimiento para enviar datos desde un array.
             // si estamos reproduciendo, nos mantenemos.
@@ -683,10 +684,11 @@ class ZXProcessor
                     {
                         return;
                     }
- 
                     
-                    PROGRESS_BAR_TOTAL_VALUE = ((BYTES_INI + (i+1)) * 100 ) / BYTES_TOBE_LOAD ;
-                    PROGRESS_BAR_BLOCK_VALUE = ((BYTES_INI + (i+1)) * 100 ) / (BYTES_INI + BYTES_IN_THIS_BLOCK);
+                    ptrOffset = i;
+                    
+                    PROGRESS_BAR_TOTAL_VALUE = ((PRG_BAR_OFFSET_INI + (ptrOffset+1)) * 100 ) / BYTES_TOBE_LOAD ;
+                    PROGRESS_BAR_BLOCK_VALUE = ((PRG_BAR_OFFSET_INI + (ptrOffset+1)) * 100 ) / PRG_BAR_OFFSET_END;
 
                 }
                 
@@ -857,6 +859,7 @@ class ZXProcessor
             uint8_t _mask = 8;   
             uint8_t bRead = 0x00;
             int bytes_in_this_block = 0;
+            int ptrOffset = 0;
 
             for (int i = 0; i < size;i++)
             {
@@ -927,13 +930,11 @@ class ZXProcessor
                     {
                         return;
                     }
-                
+
+                    ptrOffset = i;
                     // Esto lo hacemos para asegurarnos que la barra se llena entera
-                    // if (BYTES_LOADED > BYTES_TOBE_LOAD)
-                    // {BYTES_LOADED = BYTES_TOBE_LOAD;}
-                    // PROGRESS_BAR_TOTAL_VALUE = ((BYTES_INI + (i+1)) * 100 ) / BYTES_TOBE_LOAD ;      
-                    PROGRESS_BAR_TOTAL_VALUE = ((BYTES_INI + (i+1)) * 100 ) / BYTES_TOBE_LOAD ;
-                    PROGRESS_BAR_BLOCK_VALUE = ((BYTES_INI + (i+1)) * 100 ) / (BYTES_IN_THIS_BLOCK);                                  
+                    PROGRESS_BAR_TOTAL_VALUE = ((PRG_BAR_OFFSET_INI + (ptrOffset+1)) * 100 ) / BYTES_TOBE_LOAD ;
+                    PROGRESS_BAR_BLOCK_VALUE = ((PRG_BAR_OFFSET_INI + (ptrOffset+1)) * 100 ) / PRG_BAR_OFFSET_END;                                  
             }
         }
 

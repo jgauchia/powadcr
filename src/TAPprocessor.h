@@ -1276,7 +1276,10 @@ class TAPprocessor
                         // Obtenemos el nombre del bloque
                         strncpy(LAST_NAME,_myTAP.descriptor[i].name,sizeof(_myTAP.descriptor[i].name));
                         LAST_SIZE = _myTAP.descriptor[i].size;
-                        BYTES_IN_THIS_BLOCK = _myTAP.descriptor[i].size;
+                        
+                        // Datos para la barra de progreso
+                        PRG_BAR_OFFSET_INI = _myTAP.descriptor[i].offset;
+                        PRG_BAR_OFFSET_END = _myTAP.descriptor[i].offset + _myTAP.descriptor[i].size;
 
                         // LOADING_STATE se usa también para detener el procesador de audio (ZXProcessor.h).
                         //
@@ -1285,21 +1288,21 @@ class TAPprocessor
                         // El estado LOADING_STATE=2 es una MANUAL STOP.
 
 
-                        if (i == 0) 
-                        {
-                            BYTES_INI = 0;
+                        // if (i == 0) 
+                        // {
+                        //     PRG_BAR_OFFSET_INI = 0;
 
-                        }
-                        else
-                        {
-                            BYTES_INI = _myTAP.descriptor[i].offset;
-                        }
+                        // }
+                        // else
+                        // {
+                        //     PRG_BAR_OFFSET_INI = _myTAP.descriptor[i].offset;
+                        // }
 
                         #ifdef DEBUGMODE
                             logln("");
                             log("Block num: " + String(i));
                             logln("");
-                            log("Block offset: " + String(BYTES_INI));
+                            log("Block offset: " + String(PRG_BAR_OFFSET_INI));
                             logln("");
                             log("Block size: " + String(_myTAP.descriptor[i].size + 2));
                         #endif
@@ -1424,7 +1427,7 @@ class TAPprocessor
 
                                     // Calculamos el offset del bloque
                                     newOffset = offsetBase + (blockSizeSplit*n);
-                                    BYTES_INI = newOffset;
+                                    PRG_BAR_OFFSET_INI = newOffset;
 
                                     // Accedemos a la SD y capturamos el bloque del fichero
                                     // Reservamos memoria
@@ -1454,7 +1457,7 @@ class TAPprocessor
                                 
                                 // Calculamos el offset del último bloque
                                 newOffset = offsetBase + (blockSizeSplit*blocks);
-                                BYTES_INI = newOffset;
+                                PRG_BAR_OFFSET_INI = newOffset;
 
                                 blockSizeSplit = lastBlockSize;
 
@@ -1476,6 +1479,8 @@ class TAPprocessor
                             {
                                 // En el caso de NO USAR SPLIT o el bloque es menor de "SIZE_FOR_SPLIT"
                                 //
+                                PRG_BAR_OFFSET_INI = _myTAP.descriptor[i].offset;
+
                                 bufferPlay = (uint8_t*)(ps_calloc((_myTAP.descriptor[i].size), sizeof(uint8_t)));
                                 sdm.readFileRange32(_mFile,bufferPlay,_myTAP.descriptor[i].offset, _myTAP.descriptor[i].size, false);
                                 
