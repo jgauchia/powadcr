@@ -30,7 +30,10 @@
     
     To Contact the dev team you can write to hash6iron@gmail.com
  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-
+ 
+ #define  up   1
+ #define  down 0
+ 
 int stackFreeCore0 = 0;
 int stackFreeCore1 = 0;
 int lst_stackFreeCore0 = 0;
@@ -40,6 +43,12 @@ int lst_stack_used = 0;
 int lst_psram_free = 0;
 int lst_stack_free = 0;
 int SD_SPEED_MHZ = 4;
+
+// Inversion de pulso
+// ------------------
+uint8_t POLARIZATION = 0;             // 0 = DOWN, 1 = HIGH
+uint8_t EDGE_EAR_IS = POLARIZATION;
+
 // ************************************************************
 //
 // Estructura de datos
@@ -106,6 +115,7 @@ struct tTZXBlockDescriptor
   bool jump_this_ID = false;
   int samplingRate = 79;
   bool signalLvl = false;  //true == polarization UP, false == DOWN
+  uint8_t edge = POLARIZATION;       // Edge of the begining of the block. Only for playing
 };
 
 // Estructura tipo TZX
@@ -233,12 +243,6 @@ char LASTYPE6[] = "ARRAY.CHR\0";
 bool ID_NOT_IMPLEMENTED = false;
 bool NOT_CAPTURE_ID = false;
 
-enum edge
-{
-  up=1,
-  down=0
-};
-
 // WAV record
 bool MODEWAV = false;
 bool OUT_TO_WAV = false;
@@ -256,13 +260,8 @@ uint8_t TAPESTATE = 0;
 // Con esto hacemos que el primer pulso sea UP 
 // (porque el ultimo era DOWN supuestamente)
 
-// Inversion de pulso
-// ------------------
-// Para que empiece en DOWN tenemos que poner POLARIZATION en UP
-// Una señal con INVERSION de pulso es POLARIZACION = UP (empieza en DOWN)
 
-edge POLARIZATION = down;
-edge LAST_EAR_IS = POLARIZATION;
+// bool FIRST_BLOCK_INVERTED = false;
 //edge SCOPE = down;
 bool APPLY_END = false;
 int SAMPLING_RATE = 44100;

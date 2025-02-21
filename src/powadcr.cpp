@@ -2745,30 +2745,25 @@ void verifyConfigFileForSelection()
               {
                   // Para que empiece en DOWN tenemos que poner POLARIZATION en UP
                   // Una señal con INVERSION de pulso es POLARIZACION = UP (empieza en DOWN)
-                  POLARIZATION = up;
-                  LAST_EAR_IS = up;
+                  //POLARIZATION = down;
+                  EDGE_EAR_IS = POLARIZATION ^ 1;
                   INVERSETRAIN = true;
 
-                  if (POLARIZATION==up)
+                  if (INVERSETRAIN)
                   {
                     hmi.writeString("menuAudio2.polValue.val=1");
-
-                    logln("");
-                    log("Polarization INV: " + String(APPLY_END));
-
                   }
                   else
                   {
                     hmi.writeString("menuAudio2.polValue.val=0");
-
-                    logln("");
-                    log("Polarization DIR: " + String(APPLY_END));
                   }
               }
               else
               {
-                POLARIZATION = down;
-                LAST_EAR_IS = down;
+                //POLARIZATION = up;
+                //EDGE_EAR_IS = up;
+                hmi.writeString("menuAudio2.polValue.val=0");
+                EDGE_EAR_IS = POLARIZATION;
                 INVERSETRAIN = false;
               }            
           }
@@ -3043,11 +3038,11 @@ void getAudioSettingFromHMI()
     {
       // Para que empiece en DOWN tenemos que poner POLARIZATION en UP
       // Una señal con INVERSION de pulso es POLARIZACION = UP (empieza en DOWN)
-      POLARIZATION = up;
+      INVERSETRAIN = true;
     }
     else
     {
-      POLARIZATION = down;
+      INVERSETRAIN = false;
     }
 
     if(myNex.readNumber("menuAdio.lvlLowZero.val")==1)
@@ -3061,20 +3056,9 @@ void getAudioSettingFromHMI()
 }
 
 void setPolarization()
-{
-    if (INVERSETRAIN)
-    {
-        // Para que empiece en DOWN tenemos que poner POLARIZATION en UP
-        // Una señal con INVERSION de pulso es POLARIZACION = UP (empieza en DOWN)
-        POLARIZATION = up;
-        LAST_EAR_IS = up;
-    }
-    else
-    {
-        // Empieza en UP
-        POLARIZATION = down;
-        LAST_EAR_IS = down;
-    }  
+{   
+        // Inicializa la polarizacion
+        EDGE_EAR_IS = POLARIZATION; 
 }
 
 void getPlayeableBlockTZX(tTZX tB, int inc)
@@ -3522,6 +3506,20 @@ void openBlocksBrowser()
     }  
 }
 
+void recoverEdgeBeginOfBlock()
+{
+    if (TYPE_FILE_LOAD == "TZX")
+    {
+      // Recuperamos el flanco con el que empezo el bloque
+      EDGE_EAR_IS = myTZX.descriptor[BLOCK_SELECTED].edge; 
+    }
+    else
+    {
+      // Empezamos con el tipo de polarizacion ya que este filetype no es sensible a esta
+      EDGE_EAR_IS = POLARIZATION;
+    }   
+}
+
 void tapeControl()
 {
   // Estados de funcionamiento del TAPE
@@ -3562,7 +3560,8 @@ void tapeControl()
             logAlert("EJECT state in TAPESTATE = " + String(TAPESTATE));
           #endif
 
-          //LAST_MESSAGE = "Ejecting cassette.";
+          // Inicializamos la polarizacion
+          EDGE_EAR_IS = POLARIZATION;
 
           // Limpiamos los campos del TAPE
           // porque hemos expulsado la cinta.
@@ -3650,7 +3649,6 @@ void tapeControl()
       if (PLAY)
       {
           // Inicializamos la polarización de la señal al iniciar la reproducción.
-          LAST_EAR_IS = POLARIZATION; 
           //
           LOADING_STATE = 1;      
           //Activamos la animación
@@ -3836,6 +3834,8 @@ void tapeControl()
           // Reanudamos la reproduccion
           TAPESTATE = 1;
           AUTO_PAUSE = false;
+
+          recoverEdgeBeginOfBlock();         
       }
       else if (PAUSE)
       {
@@ -3844,6 +3844,8 @@ void tapeControl()
           AUTO_PAUSE = false;
 
           HMI_FNAME = FILE_LOAD;
+
+          recoverEdgeBeginOfBlock();
       }
       else if (STOP)
       {
@@ -3856,6 +3858,8 @@ void tapeControl()
           {
             getTheFirstPlayeableBlock();
           }
+          //
+          setPolarization();
       }
       else if (FFWIND || RWIND)
       {        
@@ -4726,7 +4730,7 @@ void setup()
     hmi.writeString("menuAudio2.r3.val=1");
     SAMPLING_RATE = 22050;
     hmi.writeString("tape.lblFreq.txt=\"22KHz\"" );
-    hmi.refreshPulseIcons(POLARIZATION,ZEROLEVEL); 
+    hmi.refreshPulseIcons(INVERSETRAIN,ZEROLEVEL); 
     // -------------------------------------------------------------------------
 
     // Asignamos el HMI

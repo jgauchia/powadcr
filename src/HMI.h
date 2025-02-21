@@ -2594,20 +2594,21 @@ class HMI
           strCmd.getBytes(buff, 7);
           int valEn = (int)buff[4];
           //
-          if (valEn==1)
-          {
-              // Empieza en DOWN
-              POLARIZATION = up;
-              LAST_EAR_IS = up;
-              INVERSETRAIN = true;
-          }
-          else
-          {
-              // Empieza en UP
-              POLARIZATION = down;
-              LAST_EAR_IS = down;
-              INVERSETRAIN = false;
-          }
+          INVERSETRAIN = valEn;
+          // if (valEn==0)
+          // {
+          //     // Empieza en DOWN
+          //     POLARIZATION = up;
+          //     EDGE_EAR_IS = up;
+          //     //INVERSETRAIN = false;
+          // }
+          // else
+          // {
+          //     // Empieza en UP
+          //     POLARIZATION = down;
+          //     EDGE_EAR_IS = down;
+          //     //INVERSETRAIN = true;
+          // }
 
           //logln("");
           //logln("Polarization =" + String(INVERSETRAIN));
@@ -2772,7 +2773,7 @@ class HMI
             cfg.println("<zerolevel>" + String(ZEROLEVEL) + "</zerolevel>");
             cfg.println("<blockend>" + String(APPLY_END) + "</blockend>");     
 
-            if (POLARIZATION == up)
+            if (INVERSETRAIN)
             {
                cfg.println("<polarized>1</polarized>");       
             } 

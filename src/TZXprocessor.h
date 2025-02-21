@@ -1493,36 +1493,39 @@ class TZXprocessor
               _myTZX.descriptor[currentBlock].playeable = false;
 
 
-              // Inversion de señal            
-              if(signalLevel==1)
-              {
-                  // Para que empiece en DOWN tiene que ser POLARIZATION = UP
-                  // esto seria una señal invertida
-                  POLARIZATION = up;
-                  LAST_EAR_IS = up;
-                  INVERSETRAIN = true;
-                  _myTZX.descriptor[currentBlock].signalLvl = true;
+              // Inversion de señal    
+              INVERSETRAIN = signalLevel;
+              hmi.writeString("menuAudio2.polValue.val=" + String(INVERSETRAIN));  
+              _myTZX.descriptor[currentBlock].signalLvl = INVERSETRAIN;      
+              // if(signalLevel==0)
+              // {
+              //     // Para que empiece en DOWN tiene que ser POLARIZATION = UP
+              //     // esto seria una señal invertida
+              //     POLARIZATION = up;
+              //     EDGE_EAR_IS = up;
+              //     //INVERSETRAIN = false;
+              //     _myTZX.descriptor[currentBlock].signalLvl = true;
                               
 
-                  hmi.writeString("menuAudio2.polValue.val=1");
+              //     hmi.writeString("menuAudio2.polValue.val=1");
 
-                  // logln("");
-                  // log("Polarization INV: " + String(APPLY_END));
-              }
-              else
-              {
-                  POLARIZATION = down;
-                  LAST_EAR_IS = down;
-                  INVERSETRAIN = false;                
-                  _myTZX.descriptor[currentBlock].signalLvl = false;
+              //     // logln("");
+              //     // log("Polarization INV: " + String(APPLY_END));
+              // }
+              // else
+              // {
+              //     POLARIZATION = down;
+              //     EDGE_EAR_IS = down;
+              //     //INVERSETRAIN = true;                
+              //     _myTZX.descriptor[currentBlock].signalLvl = false;
 
-                  hmi.writeString("menuAudio2.polValue.val=0");
+              //     hmi.writeString("menuAudio2.polValue.val=0");
 
-                  // logln("");
-                  // log("Polarization DIR: " + String(APPLY_END));
-              }
+              //     // logln("");
+              //     // log("Polarization DIR: " + String(APPLY_END));
+              // }
 
-              _hmi.refreshPulseIcons(POLARIZATION,ZEROLEVEL);               
+              _hmi.refreshPulseIcons(INVERSETRAIN,ZEROLEVEL);               
 
               nextIDoffset = currentOffset + 6;            
 
@@ -2292,33 +2295,34 @@ class TZXprocessor
                               log("Signal LEVEL");
                               myTZX.descriptor[nblock].signalLvl = str.toInt();
                 
-                              // Inversion de señal            
-                              if(myTZX.descriptor[nblock].signalLvl)
-                              {
-                                // Para que empiece en DOWN tiene que ser POLARIZATION = UP
-                                // esto seria una señal invertida
-                                POLARIZATION = up;
-                                LAST_EAR_IS = up;
-                                INVERSETRAIN = true;
-                                myTZX.descriptor[nblock].signalLvl = true;                
+                              // Inversion de señal      
+                              INVERSETRAIN = myTZX.descriptor[nblock].signalLvl;
+                              // if(!INVERSETRAIN)
+                              // {
+                              //   // Para que empiece en DOWN tiene que ser POLARIZATION = UP
+                              //   // esto seria una señal invertida
+                              //   POLARIZATION = up;
+                              //   EDGE_EAR_IS = up;
+                              //   //INVERSETRAIN = true;
+                              //   //myTZX.descriptor[nblock].signalLvl = true;                
                                 
-                                // logln("");
-                                // log("Polarization INV: " + String(INVERSETRAIN));
+                              //   // logln("");
+                              //   // log("Polarization INV: " + String(INVERSETRAIN));
 
-                              }
-                              else
-                              {
-                                POLARIZATION = down;
-                                LAST_EAR_IS = down;
-                                INVERSETRAIN = false;                
-                                myTZX.descriptor[nblock].signalLvl = false;                
+                              // }
+                              // else
+                              // {
+                              //   POLARIZATION = down;
+                              //   EDGE_EAR_IS = down;
+                              //   //INVERSETRAIN = false;                
+                              //   //myTZX.descriptor[nblock].signalLvl = false;                
                                 
-                                // logln("");
-                                // log("Polarization DIR: " + String(INVERSETRAIN));
+                              //   // logln("");
+                              //   // log("Polarization DIR: " + String(INVERSETRAIN));
                 
-                              }       
+                              // }       
                               
-                              _hmi.refreshPulseIcons(POLARIZATION,ZEROLEVEL);                          
+                              _hmi.refreshPulseIcons(INVERSETRAIN,ZEROLEVEL);                          
                               
                           }
 
@@ -2906,7 +2910,7 @@ class TZXprocessor
                 i = _myTZX.numBlocks+1;
 
                 LOOP_PLAYED = 0;
-                LAST_EAR_IS = down;
+                //EDGE_EAR_IS = down;
                 LOOP_START = 0;
                 LOOP_END = 0;
                 BL_LOOP_START = 0;
@@ -2958,7 +2962,7 @@ class TZXprocessor
                   }
 
                   // Inicializamos la polarización de la señal
-                  LAST_EAR_IS = POLARIZATION;   
+                  //EDGE_EAR_IS = POLARIZATION;   
 
                   //_zxp.closeBlock();
 
@@ -3018,27 +3022,21 @@ class TZXprocessor
 
             case 43:
               // Inversion de señal            
-              if(POLARIZATION == up)
+              if(INVERSETRAIN)
               {
                   // Para que empiece en DOWN tiene que ser POLARIZATION = UP
                   // esto seria una señal invertida
-                  LAST_EAR_IS = up;
-                  INVERSETRAIN = true;                
+                  // EDGE_EAR_IS = down;
+                  // POLARIZATION = down;
+                  //INVERSETRAIN = true;                
                   hmi.writeString("menuAudio2.polValue.val=1");
-
-                  // logln("");
-                  // log("Polarization INV: " + String(APPLY_END));
+                  // FIRST_BLOCK_INVERTED = true;
               }
               else
               {
-                  LAST_EAR_IS = down;
-                  INVERSETRAIN = false;                
-                  hmi.writeString("menuAudio2.polValue.val=0");
-
-                  // logln("");
-                  // log("Polarization DIR: " + String(APPLY_END));
+                hmi.writeString("menuAudio2.polValue.val=0");
               }
-              _hmi.refreshPulseIcons(POLARIZATION,ZEROLEVEL);               
+              _hmi.refreshPulseIcons(INVERSETRAIN,ZEROLEVEL);               
               break;
 
             default:
@@ -3103,7 +3101,7 @@ class TZXprocessor
                         i = _myTZX.numBlocks+1;
 
                         LOOP_PLAYED = 0;
-                        LAST_EAR_IS = down;
+                        // EDGE_EAR_IS = down;
                         LOOP_START = 0;
                         LOOP_END = 0;
                         BL_LOOP_START = 0;
@@ -3321,7 +3319,7 @@ class TZXprocessor
                                       PRG_BAR_OFFSET_END = ldatos;
                                       PROGRESS_BAR_BLOCK_VALUE = 0;
                                       
-                                      // Una sola particion
+                                      // Una sola partiase 43ion
                                       PRG_BAR_OFFSET_INI = _myTZX.descriptor[i].offsetData;
                                       
                                       prepareID4B(i,_mFile,nlb,vlb,ntb,vtb,pzero,pone, offset, ldatos,true);
@@ -3563,6 +3561,9 @@ class TZXprocessor
               for (int i = firstBlockToBePlayed; i < _myTZX.numBlocks; i++) 
               {               
 
+                  // Lo guardo por si hago PAUSE y vuelvo a reproducir el bloque
+                  _myTZX.descriptor[i].edge = EDGE_EAR_IS;
+
                   BLOCK_SELECTED = i;  
 
                   if (BLOCK_SELECTED == 0) 
@@ -3605,7 +3606,7 @@ class TZXprocessor
                   {_zxp.silence(2000);}
 
                   // Inicializamos la polarización de la señal
-                  LAST_EAR_IS = POLARIZATION;       
+                  // EDGE_EAR_IS = POLARIZATION;       
 
                   // Paramos
                   #ifdef DEBUGMODE
@@ -3630,7 +3631,7 @@ class TZXprocessor
               // Cerrando
               // reiniciamos el edge del ultimo pulse
               LOOP_PLAYED = 0;
-              //LAST_EAR_IS = down;
+              //EDGE_EAR_IS = down;
               LOOP_START = 0;
               LOOP_END = 0;
               LOOP_COUNT = 0;

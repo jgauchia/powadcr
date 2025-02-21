@@ -189,6 +189,8 @@ class ZXProcessor
 
             // Reiniciamos
             ACU_ERROR = 0;
+            // EDGE_EAR_IS ^=1;
+            // if (INVERSETRAIN) EDGE_EAR_IS ^=1;
         }
 
         double getChannelAmplitude(bool changeNextEARedge, bool isError=false)
@@ -209,34 +211,32 @@ class ZXProcessor
             // Esta rutina genera el pulso dependiendo de como es el ultimo
             if(isError)
             {
-                if (LAST_EAR_IS==down)
+                if (EDGE_EAR_IS==down)
                 {
                     // Hacemos el edge de down --> up               
                     // ¿El próximo flanco se cambiará?
                     A=minAmplitude;
-                    LAST_EAR_IS = down;
                 }
                 else
                 {
                     A=maxAmplitude;
-                    LAST_EAR_IS = up;
+                    EDGE_EAR_IS ^= 1;
                 }
             }
             else
             {
-                if (LAST_EAR_IS==down)
+                if (EDGE_EAR_IS==down)
                 {
                     // Hacemos el edge de down --> up               
                     // ¿El próximo flanco se cambiará?
                     if (changeNextEARedge)
                     {
                         A=maxAmplitude;
-                        LAST_EAR_IS = up;
+                        EDGE_EAR_IS ^= 1;
                     }
                     else
                     {
                         A=minAmplitude;
-                        LAST_EAR_IS = down;
                     }
                 }
                 else
@@ -245,12 +245,11 @@ class ZXProcessor
                     if (changeNextEARedge)
                     {
                         A=minAmplitude;
-                        LAST_EAR_IS = down;
+                        EDGE_EAR_IS ^= 1;
                     }
                     else
                     {
                         A=maxAmplitude;
-                        LAST_EAR_IS = up;
                     }
                 }
             }
@@ -335,7 +334,23 @@ class ZXProcessor
                     encoderOutWAV.write(buffer, result);
                 }
 
-                           
+                // Cambiamos el flanco con una XOR
+                // 0 ^ 1 = 1
+                // 1 ^ 1 = 0
+                // if (EDGE_EAR_IS == 1)
+                // {
+                //     EDGE_EAR_IS = 0;
+                // }
+                // else
+                // {
+                //     EDGE_EAR_IS = 1;
+                // }
+
+                //EDGE_EAR_IS ^= 1;
+                //EDGE_EAR_IS ^= 1;
+                
+                // if (INVERSETRAIN)
+                // {EDGE_EAR_IS = EDGE_EAR_IS ^ 1;}                           
         }
 
         void sampleDR(int width, int amp)
@@ -741,11 +756,11 @@ class ZXProcessor
 
                 if (APPLY_END)
                 {
-                    if (LAST_EAR_IS==down)
+                    if (EDGE_EAR_IS==down)
                     {
                         // El primer milisegundo es el contrario al ultimo flanco
                         // el terminador se genera en base al ultimo flanco que indique
-                        // LAST_EAR_IS
+                        // EDGE_EAR_IS
                         #ifdef DEBUGMODE
                             log("Añado TERMINATOR +1ms");
                         #endif
@@ -758,7 +773,7 @@ class ZXProcessor
                             // Si es mayor de 1ms, entonces se lo restamos.
                             samples -= terminator_samples;
                             // Inicializamos la polarización de la señal
-                            //LAST_EAR_IS = down;   
+                            //EDGE_EAR_IS = down;   
                         }
                     }
                 }
