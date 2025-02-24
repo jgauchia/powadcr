@@ -1811,6 +1811,7 @@ void playMP3()
                         {
                             LAST_MESSAGE = "Stop playing";
                             stateWAVplayer = 4;
+                            tapeAnimationOFF();
                         }
                         else
                         {
@@ -2066,11 +2067,6 @@ void playMP3()
     }  
 
     rotate_enable = false;
-}
-
-void playWAV2()
-{
-
 }
 
 void playWAV()
@@ -2336,6 +2332,7 @@ void playWAV()
                         {
                             LAST_MESSAGE = "Stop playing";
                             stateWAVplayer = 4;
+                            tapeAnimationOFF();
                         }
                         else
                         {
@@ -2827,7 +2824,12 @@ void loadingFile(char* file_ch)
         verifyConfigFileForSelection();
         // changeLogo(41);
         // Reservamos memoria
-        myTAP.descriptor = (tTAPBlockDescriptor*)ps_calloc(MAX_BLOCKS_IN_TAP, sizeof(struct tTAPBlockDescriptor));        
+        if (!myTAPmemoryReserved)
+        {
+          myTAP.descriptor = (tTAPBlockDescriptor*)ps_calloc(MAX_BLOCKS_IN_TAP, sizeof(struct tTAPBlockDescriptor));     
+          myTAPmemoryReserved = true;  
+        }
+
         // Pasamos el control a la clase
         pTAP.setTAP(myTAP);   
         // Lo procesamos
@@ -2842,7 +2844,12 @@ void loadingFile(char* file_ch)
         // Verificamos si hay fichero de configuracion para este archivo seleccionado
         verifyConfigFileForSelection();        // Reservamos memoria
         // 
-        myTZX.descriptor = (tTZXBlockDescriptor*)ps_calloc(MAX_BLOCKS_IN_TZX , sizeof(struct tTZXBlockDescriptor));        
+        if (!myTZXmemoryReserved)
+        {
+          myTZX.descriptor = (tTZXBlockDescriptor*)ps_calloc(MAX_BLOCKS_IN_TZX , sizeof(struct tTZXBlockDescriptor));      
+          myTZXmemoryReserved = true;  
+        }
+
         // Pasamos el control a la clase
         pTZX.setTZX(myTZX);
 
@@ -2921,12 +2928,13 @@ void ejectingFile()
       // Solicitamos el puntero _myTAP de la clase
       // para liberarlo
       logln("Eject TAP");
-      if (myTAP.descriptor != nullptr)
+      if (myTAPmemoryReserved)
       {
         LAST_MESSAGE = "Preparing structure";
         free(pTAP.getDescriptor());
         // Finalizamos
         pTAP.terminate();
+        myTAPmemoryReserved = false;
       }
   }
   else if (TYPE_FILE_LOAD == "TZX" || TYPE_FILE_LOAD == "CDT" || TYPE_FILE_LOAD == "TSX")
@@ -2934,13 +2942,14 @@ void ejectingFile()
       // Solicitamos el puntero _myTZX de la clase
       // para liberarlo
       logln("Eject TZX");
-      if (myTZX.descriptor != nullptr)
+      if (myTZXmemoryReserved)
       {
         LAST_MESSAGE = "Preparing structure";
         freeMemoryFromDescriptorTZX(pTZX.getDescriptor());
         free(pTZX.getDescriptor());
         // Finalizamos
         pTZX.terminate();
+        myTZXmemoryReserved = false;
       }
   }
   else
@@ -2960,10 +2969,11 @@ void prepareRecording()
     // sdf.begin(ESP32kit.pinSpiCs(), SD_SCK_MHZ(4));    
 
     // Liberamos myTAP.descriptor de la memoria si existe 
-    if (myTAP.descriptor!= nullptr) 
-    {
-      free(myTAP.descriptor);
-    }
+    // if (myTAPmemoryReserved) 
+    // {
+    //   free(myTAP.descriptor);
+    //   myTAPmemoryReserved = false;
+    // }
       
     // Inicializamos audio input
     if (REC_AUDIO_LOOP)

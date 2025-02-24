@@ -198,7 +198,6 @@ class TZXprocessor
         {
           // Capturamos el nombre del fichero en szName
           char szName[254];
-          // char* szName = (char*)ps_calloc(255,sizeof(char));
           tzxFile.getName(szName,254);
           String fileName = String(szName);
 

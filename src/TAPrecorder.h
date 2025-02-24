@@ -75,8 +75,8 @@ class TAPrecorder
       // uint8_t bufferOut[1024];
 
       // Comunes
-      char* fileNameRename = nullptr;
-      char* recDir = nullptr;
+      char fileNameRename[25] = {""};
+      char recDir[57] = {""};
 
       // Estamos suponiendo que el ZX Spectrum genera signal para grabar
       // con timming estandar entonces
@@ -166,7 +166,7 @@ class TAPrecorder
       struct tHeader
       {
           int type;
-          char name[11];
+          char name[11] = {""};
           uint8_t sizeLSB;
           uint8_t sizeMSB;
           uint8_t sizeNextBlLSB;
@@ -371,9 +371,9 @@ class TAPrecorder
       void renameFile()
       {
           // Reservamos memoria             
-          char* cPath = (char*)ps_calloc(55,sizeof(char));
+          char cPath[57] = {""};
           String dirR = RECORDING_DIR + "/\0";
-          cPath = strcpy(cPath, dirR.c_str());
+          strcpy(cPath, dirR.c_str());
           //Generamos un numero aleatorio para el final del nombre
           srand(time(0));
           delay(125);
@@ -397,7 +397,7 @@ class TAPrecorder
             wasRenamed = true;
           }
 
-          free(cPath);
+          //free(cPath);
       }
 
       void getFileName(bool test)
@@ -406,8 +406,6 @@ class TAPrecorder
         {
           // Proporcionamos espacio en memoria para el
           // nuevo filename
-          fileNameRename = (char*)ps_calloc(20,sizeof(char));
-          //strcpy(fileNameRename,"noname");
 
           if (test)
           {
@@ -1450,9 +1448,8 @@ class TAPrecorder
           // Reservamos memoria
           const char fileName[20] ={"_record\0"};
 
-          recDir = (char*)ps_calloc(55,sizeof(char));
           String dirR = RECORDING_DIR + "/\0";
-          recDir = strcpy(recDir, dirR.c_str());
+          strcpy(recDir, dirR.c_str());
           
           if (!_sdf32.mkdir(RECORDING_DIR))
           {
@@ -1471,8 +1468,16 @@ class TAPrecorder
           //SerialHW.println("Dir for REC: " + String(recDir));
 
           // Inicializo bit string
-          bitChStr = (char*)ps_calloc(8, sizeof(char));
-          datablock = (uint8_t*)ps_calloc(1, sizeof(uint8_t));
+          if (!bitChStrMemoryReserved) 
+          {
+            bitChStr = (char*)ps_calloc(8, sizeof(char));
+            bitChStrMemoryReserved = true;
+          }
+          if (!datablockMemoryReserved)
+          {
+            datablock = (uint8_t*)ps_calloc(1, sizeof(uint8_t));
+            datablockMemoryReserved = true;
+          }
           
           // Inicializamos el array de nombre del header
           for (int i=0;i<10;i++)
@@ -1481,7 +1486,12 @@ class TAPrecorder
           }
           strcpy(header.name,"noname");
 
-          bufferRec = (uint8_t*)ps_calloc(BUFFER_SIZE_REC,sizeof(uint8_t));
+          if (!bufferRecMemoryReserved)
+          {
+            bufferRec = (uint8_t*)ps_calloc(BUFFER_SIZE_REC,sizeof(uint8_t));
+            bufferRecMemoryReserved = true;
+          }
+
           initializeBuffer();
 
           errorInDataRecording = false;
@@ -1752,25 +1762,34 @@ class TAPrecorder
         //
         fileWasClosed = true;
 
-        logln("2");
-        if (fileNameRename != nullptr)
-        {free(fileNameRename);}
+        // logln("2");
+        // if (fileNameRename != nullptr)
+        // {free(fileNameRename);}
 
-        logln("3");
-        if(recDir != nullptr)
-        {free(recDir);}
+        //logln("3");
+        // if(recDir != nullptr)
+        // {free(recDir);}
         
         logln("4");
-        if(bitChStr != nullptr)
-        {free(bitChStr);}
+        if(bitChStrMemoryReserved)
+        {
+          free(bitChStr);
+          bitChStrMemoryReserved = false;
+        }
         
         logln("5");
-        if(datablock != nullptr)
-        {free(datablock);}
+        if(datablockMemoryReserved)
+        {
+          free(datablock);
+          datablockMemoryReserved = false;
+        }
         
         logln("6");
-        if(bufferRec != nullptr)
-        {free(bufferRec);}
+        if(bufferRecMemoryReserved)
+        {
+          free(bufferRec);
+          bufferRecMemoryReserved = false;
+        }
                  
       }
 

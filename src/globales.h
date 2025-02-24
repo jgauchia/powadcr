@@ -128,14 +128,18 @@ struct tTZX
   tTZXBlockDescriptor* descriptor = nullptr;          // Descriptor
 };
 
-// Estructura tipo TSX
-// struct tTSX
-// {
-//   char name[11];                               // Nombre del TSX
-//   uint32_t size = 0;                             // Tamaño
-//   int numBlocks = 0;                        // Numero de bloques
-//   tTSXBlockDescriptor* descriptor = nullptr;          // Descriptor
-// };
+struct tPZXBlockDescriptor
+{
+  
+};
+
+// En little endian. Formato PZX
+struct tPZX
+{
+  char tag[5] = {""};                         // el tag son 4 caracteres + /0
+  uint32_t size = 0;
+  tPZXBlockDescriptor* descriptor = nullptr;
+};
 
 // Estructura tipo TAP
 struct tTAP 
@@ -146,13 +150,13 @@ struct tTAP
     tTAPBlockDescriptor* descriptor;            // Descriptor
 };
 
-struct tBlock 
-{
-  int index = 0;            // Numero del bloque
-  int offset = 0;           // Byte donde empieza
-  uint8_t* header;      // Cabecera del bloque
-  uint8_t* data;        // Datos del bloque
-};
+// struct tBlock 
+// {
+//   int index = 0;            // Numero del bloque
+//   int offset = 0;           // Byte donde empieza
+//   uint8_t* header;      // Cabecera del bloque
+//   uint8_t* data;        // Datos del bloque
+// };
 
 // Estructura para el HMI
 struct tFileBuffer
@@ -168,6 +172,14 @@ struct tConfig
   bool enable = false;
   String cfgLine = "";
 };
+
+//
+//
+bool myTAPmemoryReserved = false;
+bool myTZXmemoryReserved = false;
+bool bitChStrMemoryReserved = false;
+bool datablockMemoryReserved = false;
+bool bufferRecMemoryReserved = false;
 
 // ZX Proccesor config
 // ********************************************************************
