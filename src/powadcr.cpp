@@ -189,7 +189,7 @@ bool pageScreenIsShown = false;
 
 // WAV Recorder
 // -----------------------------------------------------------------------
-#include "AudioTools/AudioLibs/AudioSourceSDFAT.h"
+#include "AudioTools/Disk/AudioSourceSDFAT.h"
 #include "AudioTools/AudioCodecs/CodecWAV.h"
 #include "AudioTools/AudioCodecs/CodecMP3Helix.h"
 // #include <AudioTools/AudioCodecs/CodecADPCM.h>
